@@ -32,6 +32,11 @@ collected included:
 - Number of ratings
 
 # Approach
-1. Develop script to extract data from AirBnB webpage on a monthly basis, performing extraction and
-transformation in the process, and saving to google drive
-2. 
+1. Develop script to extract data from AirBnB webpage on a monthly basis
+2. Extract,transform and save to drive/database.
+3. Perform exploratory analysis to understand price differences between house listings and also price trend.
+
+# Questions
+TODO
+# Insights
+TODO
