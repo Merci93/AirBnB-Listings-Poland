@@ -1,6 +1,6 @@
 # AirBnB_Listings_in_Poland
 ## An analysis of AirBnB price listing in Poland's major cities during the summer period.
-The data used for this analysis was scraped out of AirBnB webpage, specifically for the major cities in
+The data used for this analysis was scraped out of AirBnB webpage, specifically for the 20 cities in
 Poland which included but might not be limited to:
 1. Warsaw
 2. Wrocław
@@ -8,11 +8,7 @@ Poland which included but might not be limited to:
 4. Gdańsk
 5. Łodz
 6. Kraków
-7. Lublin
-8. Poznań
-9. Opole
-10. Częstochowa
-11. Zakopane
+... for a full list of cities considered in this project, see the *cities.csv* file.
 
 # Objectives
 This project was based on finding out and comparing the AirBnB rental listing prices for different
