@@ -5,13 +5,17 @@ Script specifically written to extract data from AirBnB webpage
 
 import os
 import re
+import time
 
 from bs4 import BeautifulSoup
 from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions
-from selenium.webdriver.support.ui import WebDriverWait
+from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common import keys
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 import pandas
 
 from configuration import URL, SAVE_EXTRACTED_DATA, DATA_SOURCE, LOG_DIRECTORY
@@ -44,13 +48,55 @@ class ExtractData:
 			city_list.append(city["Cities"])
 		return city_list
 
-	def extract_html(self) -> str:
+	def extract_html(self) -> list:
 		"""
-		Extract data from URL using city name, using headless browser.
+		Extract data from URL using city names, and a headless browser.
 
-		:return: HTML object for each city from the URL.
+		:return: list containing HTML object for each city from the URL.
 		"""
-		# TODO
+		options = Options()
+		options.add_experimental_option("excludeSwitches", ["enable-logging"])
+		options.add_argument("--headless")
+		driver = webdriver.Chrome(options = options)
+		driver.get(self.url)
+
+		WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "div.f19g2zq0")))
+		cities = self.read_file()
+		html_list = []
+		page_per_city = []
+		for city in cities:
+			city = f"{city}, Poland"
+			location_search = driver.find_element(By.CSS_SELECTOR, "button.ffc0w66").click()
+			WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, "div.cdhcwpf")))
+			location_slot = driver.find_element(By.CSS_SELECTOR, 'input.iluujbk')
+			location_slot.send_keys(Keys.CONTROL, "a")
+			location_slot.send_keys(Keys.DELETE)
+			location_slot.send_keys(city)
+			click_search = driver.find_element(By.CSS_SELECTOR, "button.brqqy3t").click()
+			
+			page = 0
+			while True:
+				page += 1
+				log.info(f"Extracting data from {city} page {page}")
+				WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, "div.gsgwcjk")))
+				html_body = BeautifulSoup(driver.page_source, "html.parser")
+				html_list.append((city, html_body))
+
+				try:
+					next_page_path = '//*[@id="site-content"]/div/div[3]/div/div/div/nav/div/a[6]'
+					WebDriverWait(driver, 5).until(EC.visibility_of_element_located((By.CSS_SELECTOR, "a.c1ytbx3a")))
+					next_page = driver.find_element(By.XPATH, next_page_path).click()
+				except NoSuchElementException:
+					next_page_path = '//*[@id="site-content"]/div/div[3]/div/div/div/nav/div/a[5]'
+					WebDriverWait(driver, 5).until(EC.visibility_of_element_located((By.CSS_SELECTOR, "a.c1ytbx3a")))
+					next_page = driver.find_element(By.XPATH, next_page_path).click()
+				except TimeoutException:
+					break
+			
+			page_per_city.append((city, page))
+
+		return html_list, page_per_city
+			
 
 	def extract_data(self) -> int:
 		"""
@@ -59,10 +105,9 @@ class ExtractData:
 		:return: Count of data extracted per city.
 		"""
 		# TODO
-		
+		pass
 
-def scrape_data(url: str = URL,
-				data_source: str = DATA_SOURCE,
+def scrape_data(url: str = URL, data_source: str = DATA_SOURCE,
 				output_directory: str = SAVE_EXTRACTED_DATA,
 				log_directory: str = LOG_DIRECTORY) -> None:
 	"""Scrape data using the provided CSV file containing cities."""
@@ -70,11 +115,19 @@ def scrape_data(url: str = URL,
 	cities = pandas.read_csv(os.path.join(data_source, "cities.csv"))
 	for city in cities:
 		scraper = ExtractData(url, data_source, output_directory)
-		scraper.extract_data()
+		scraper.extract_html()
 
 
 if __name__ == "__main__":
 	scrape_data()
 
-
-
+# /html/body/div[5]/div/div/div[1]/div/div[3]/div[1]/div/div/div/header/div/div[2]/div[1]/div/button[3]
+# //*[@id="site-content"]/div/div[3]/div/div/div/nav/div/a[5]
+# //*[@id="site-content"]/div/div[3]/div/div/div/nav/div/a[6]
+# //*[@id="site-content"]/div/div[3]/div/div/div/nav/div/a[6]
+# //*[@id="site-content"]/div/div[3]/div/div/div/nav/div/a[6]
+# //*[@id="site-content"]/div/div[3]/div/div/div/nav/div/a[6]
+# //*[@id="site-content"]/div/div[3]/div/div/div/nav/div/a[6]
+# //*[@id="site-content"]/div/div[3]/div/div/div/nav/div/button[1]
+# //*[@id="site-content"]/div/div[3]/div/div/div/nav/div/button[2]
+# //*[@id="site-content"]/div/div[3]/div/div/div/nav/div/a[5]
