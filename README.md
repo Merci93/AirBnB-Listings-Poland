@@ -14,6 +14,9 @@ Poland which included but might not be limited to:
 This project was based on finding out and comparing the AirBnB rental listing prices for different
 accomodations available in these cities for different months and period of the year.
 
+# Files
+TODO
+
 # Data
 AirBnB price listing data for the above mentioned cities were gathered on a monthly basis, specifically at
 the middle of each month (3rd week of the month) for a period of 6 months starting from August 2023. The data
