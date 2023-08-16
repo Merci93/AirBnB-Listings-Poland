@@ -18,14 +18,14 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 import pandas
 
-from configuration import URL, SAVE_EXTRACTED_DATA, DATA_SOURCE, LOG_DIRECTORY
+from configuration import SAVE_EXTRACTED_DATA, DATA_SOURCE, LOG_DIRECTORY, URL, MONTH
 from logger import log
 
 
 class ExtractData:
 	"""A class to scrape data from given URL."""
 
-	def __init__(self, url: str = None, data_source: str = None, output_directory: str = None) -> None:
+	def __init__(self, url: str = None, month: str = None, data_source: str = None, output_directory: str = None) -> None:
 		"""
 		Open url
 
@@ -33,6 +33,7 @@ class ExtractData:
 		:param output_directory: location to save scrapped data.
 		"""
 		self.url = url
+		self.month = month
 		self.output_directory = output_directory
 		self.data_source = data_source
 
@@ -51,7 +52,7 @@ class ExtractData:
 	def extract_html(self) -> list:
 		"""
 		Extract data from URL using city names, and a headless browser.
-
+		
 		:return: list containing HTML object for each city from the URL.
 		"""
 		options = Options()
@@ -93,12 +94,11 @@ class ExtractData:
 				except TimeoutException:
 					break
 			
-			page_per_city.append((city, page))
-
+			page_per_city.append([city, page])
+		
 		return html_list, page_per_city
-			
 
-	def extract_data(self) -> int:
+	def extract_data(self) -> list:
 		"""
 		 and extract data from URL.
 
@@ -107,27 +107,17 @@ class ExtractData:
 		# TODO
 		pass
 
-def scrape_data(url: str = URL, data_source: str = DATA_SOURCE,
+
+def scrape_data(url: str = URL, month: str = MONTH,
+				data_source: str = DATA_SOURCE,
 				output_directory: str = SAVE_EXTRACTED_DATA,
 				log_directory: str = LOG_DIRECTORY) -> None:
 	"""Scrape data using the provided CSV file containing cities."""
-	data_counter = []
 	cities = pandas.read_csv(os.path.join(data_source, "cities.csv"))
 	for city in cities:
-		scraper = ExtractData(url, data_source, output_directory)
+		scraper = ExtractData(url, month, data_source, output_directory)
 		scraper.extract_html()
 
 
 if __name__ == "__main__":
 	scrape_data()
-
-# /html/body/div[5]/div/div/div[1]/div/div[3]/div[1]/div/div/div/header/div/div[2]/div[1]/div/button[3]
-# //*[@id="site-content"]/div/div[3]/div/div/div/nav/div/a[5]
-# //*[@id="site-content"]/div/div[3]/div/div/div/nav/div/a[6]
-# //*[@id="site-content"]/div/div[3]/div/div/div/nav/div/a[6]
-# //*[@id="site-content"]/div/div[3]/div/div/div/nav/div/a[6]
-# //*[@id="site-content"]/div/div[3]/div/div/div/nav/div/a[6]
-# //*[@id="site-content"]/div/div[3]/div/div/div/nav/div/a[6]
-# //*[@id="site-content"]/div/div[3]/div/div/div/nav/div/button[1]
-# //*[@id="site-content"]/div/div[3]/div/div/div/nav/div/button[2]
-# //*[@id="site-content"]/div/div[3]/div/div/div/nav/div/a[5]
