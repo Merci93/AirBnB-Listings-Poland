@@ -164,7 +164,7 @@ class ExtractData:
 																   "price_per_night", "original_price", "availability",
 																   "total_price", "beds", "star", "number_of_ratings",
 																   "url"])
-		city_listings_df.to_csv(os.path.join(save_directory, f"{self.month}.csv"), index=False)
+		city_listings_df.to_csv(os.path.join(save_directory, f"{self.month}_data.csv"), index=False)
 		log.info(f"File for {self.month} saved.")
 
 
