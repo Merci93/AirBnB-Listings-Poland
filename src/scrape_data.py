@@ -67,6 +67,7 @@ class ExtractData:
 		html_list = []
 		page_per_city = []
 		for city in cities:
+			time.sleep(10)
 			city = f"{city}, Poland"
 			location_search = driver.find_element(By.CSS_SELECTOR, "button.ffc0w66").click()
 			WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, "div.cdhcwpf")))
