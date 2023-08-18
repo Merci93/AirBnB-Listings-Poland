@@ -113,14 +113,12 @@ class ExtractData:
 		os.makedirs(save_directory, exist_ok=True)
 		
 		listing_data = []
-		url_header = "https://www.airbnb.com"
 		html_list, page_per_city = self.extract_html()
 		log.info(f"Processing data")
 		for city_html in html_list:
 			listings = city_html[1].find_all("div", {"class":"c4mnd7m"})
 			for list_detail in listings:
 				city = city_html[0]
-				url = url_header + list_detail.find("a", {"class":"l1ovpqvx"}).get("href")
 				title = list_detail.find("div", {"data-testid":"listing-card-title"}).text
 				subtitle = list_detail.find("span", {"data-testid":"listing-card-name"}).text
 				other_details = [item.text for item in list_detail.find_all("span", {"class":"dir dir-ltr"})]
@@ -158,12 +156,12 @@ class ExtractData:
 									 "total_price (zl)": total_price,
 									 "availability": availability,
 									 "star": stars,
-									 "number_of_ratings": no_of_ratings,
-									 "url": url})
+									 "number_of_ratings": no_of_ratings
+									 })
 		city_listings_df = pandas.DataFrame(listing_data, columns=["city", "date", "title", "subtitle",
 																   "price_per_night", "original_price", "availability",
 																   "total_price", "beds", "star", "number_of_ratings",
-																   "url"])
+																  ])
 		city_listings_df.to_csv(os.path.join(save_directory, f"{self.month}_data.csv"), index=False)
 		log.info(f"File for {self.month} saved.")
 
