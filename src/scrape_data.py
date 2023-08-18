@@ -126,7 +126,7 @@ class ExtractData:
 					if ("bed" in item) or ("beds" in item):
 						beds = item
 					elif "–" in item:
-						availability = item
+						availability = item.replace("–", "-")
 				try:
 					stars = list_detail.find("span", {"class":"r1dxllyb"}).text.split("(")[0].strip()
 				except AttributeError as e:
