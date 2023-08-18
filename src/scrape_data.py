@@ -3,6 +3,7 @@ Scrapes select data from the given URL.
 Script specifically written to extract data from AirBnB webpage
 """
 
+from datetime import date
 import os
 import re
 import time
@@ -79,7 +80,7 @@ class ExtractData:
 			while True:
 				page += 1
 				log.info(f"Extracting data from {city} page {page}")
-				WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, "div.gsgwcjk")))
+				WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, "div.t1jojoys")))
 				html_body = BeautifulSoup(driver.page_source, "html.parser")
 				html_list.append((city, html_body))
 
@@ -100,12 +101,72 @@ class ExtractData:
 
 	def extract_data(self) -> list:
 		"""
-		 and extract data from URL.
-
-		:return: Count of data extracted per city.
+		Extract listing data from the return HTML object, and save as CSV files.
+		
+		Output CSV files are saved in the output_directory, in a folder named "month", while "month" is the month when
+		the data was extracted. Each file is named after the city which the data belongs to and contains the listing
+		details.
+				
+		:return: A list containing city, number_of_pages, and number_of_listings per city.
 		"""
-		# TODO
-		pass
+		save_directory = os.path.join(f"{self.output_directory}")
+		os.makedirs(save_directory, exist_ok=True)
+		
+		listing_data = []
+		url_header = "https://www.airbnb.com"
+		html_list, page_per_city = self.extract_html()
+		log.info(f"Processing data")
+		for city_html in html_list:
+			listings = city_html[1].find_all("div", {"class":"c4mnd7m"})
+			for list_detail in listings:
+				city = city_html[0]
+				url = url_header + list_detail.find("a", {"class":"l1ovpqvx"}).get("href")
+				title = list_detail.find("div", {"data-testid":"listing-card-title"}).text
+				subtitle = list_detail.find("span", {"data-testid":"listing-card-name"}).text
+				other_details = [item.text for item in list_detail.find_all("span", {"class":"dir dir-ltr"})]
+				for item in other_details:
+					if ("bed" in item) or ("beds" in item):
+						beds = item
+					elif "–" in item:
+						availability = item
+				try:
+					stars = list_detail.find("span", {"class":"r1dxllyb"}).text.split("(")[0].strip()
+				except AttributeError as e:
+					stars = e
+				try:
+					no_of_ratings = list_detail.find("span",
+													 {"class":"r1dxllyb"}
+													).text.split("(")[1].strip().replace(")","")
+				except (IndexError, AttributeError):
+					no_of_ratings = stars
+				total_price = list_detail.find("div", {"class":"_tt122m"}).text.split("zł")[0].strip()
+				get_price = list_detail.find("span", {"class":"_14y1gc"}).text
+				if "originally" in str(get_price):
+					price_per_night = get_price.split("zł")[1].strip()
+					original_price = get_price.split("zł")[0].strip()
+				else:
+					price_per_night = get_price.split("zł")[0].strip()
+					original_price = price_per_night
+
+				listing_data.append({"city": city,
+									 "date": date.today(),
+									 "title": title,
+									 "subtitle": subtitle,
+									 "beds": beds,
+									 "price_per_night (zl)": price_per_night,
+									 "original_price (zl)": original_price,
+									 "total_price (zl)": total_price,
+									 "availability": availability,
+									 "star": stars,
+									 "number_of_ratings": no_of_ratings,
+									 "url": url})
+		city_listings_df = pandas.DataFrame(listing_data, columns=["city", "date", "title", "subtitle",
+																   "price_per_night", "original_price", "availability",
+																   "total_price", "beds", "star", "number_of_ratings",
+																   "url"])
+		city_listings_df.to_csv(os.path.join(save_directory, f"{self.month}.csv"), index=False)
+		log.info(f"File for {self.month} saved.")
+
 
 
 def scrape_data(url: str = URL, month: str = MONTH,
@@ -113,11 +174,17 @@ def scrape_data(url: str = URL, month: str = MONTH,
 				output_directory: str = SAVE_EXTRACTED_DATA,
 				log_directory: str = LOG_DIRECTORY) -> None:
 	"""Scrape data using the provided CSV file containing cities."""
-	cities = pandas.read_csv(os.path.join(data_source, "cities.csv"))
-	for city in cities:
-		scraper = ExtractData(url, month, data_source, output_directory)
-		scraper.extract_html()
+	scraper = ExtractData(url, month, data_source, output_directory)
+	scraper.extract_data()
 
 
 if __name__ == "__main__":
-	scrape_data()
+	try:
+		scrape_data()
+	except TimeoutException as e:
+		print(f"{e} exception occurred. Trying again")
+		try:
+			scrape_data()
+		except TimeoutException as e:
+			print(f"{e} exception occured again. Stopping execution.")
+			pass
