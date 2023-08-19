@@ -17,6 +17,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+from unidecode import unidecode
 import pandas
 
 from configuration import SAVE_EXTRACTED_DATA, DATA_SOURCE, LOG_DIRECTORY, URL, MONTH
@@ -140,7 +141,7 @@ class ExtractData:
 					cities_not_extracted.append(city)
 
 		city_pages = [(item[0], item[1]) for sublist in page_per_city for item in sublist]
-		city_pages_df = pandas.DataFrame(city_pages, columns=["city", "number_of_web+pages"])
+		city_pages_df = pandas.DataFrame(city_pages, columns=["city", "number_of_web_pages"])
 		city_pages_df.to_csv(os.path.join(self.log_directory, f"{self.month}_data_extraction.csv"), index=False)
 		
 		if len(cities_not_extracted) != 0:
@@ -163,57 +164,58 @@ class ExtractData:
 		os.makedirs(save_directory, exist_ok=True)
 		
 		listing_data = []
-		html_list, page_per_city = self.extract_html()
+		html_list = [(item[0], item[1]) for sublist in self.extract_html() for item in sublist]
 		log.info(f"Processing data")
-		# for city_html in html_list:
-		# 	listings = city_html[1].find_all("div", {"class":"c4mnd7m"})
-		# 	for list_detail in listings:
-		# 		city = city_html[0]
-		# 		title = list_detail.find("div", {"data-testid":"listing-card-title"}).text
-		# 		subtitle = list_detail.find("span", {"data-testid":"listing-card-name"}).text
-		# 		other_details = [item.text for item in list_detail.find_all("span", {"class":"dir dir-ltr"})]
-		# 		for item in other_details:
-		# 			if ("bed" in item) or ("beds" in item):
-		# 				beds = item
-		# 			elif "–" in item:
-		# 				availability = item.replace("–", "-")
-		# 		try:
-		# 			stars = list_detail.find("span", {"class":"r1dxllyb"}).text.split("(")[0].strip()
-		# 		except AttributeError as e:
-		# 			stars = e
-		# 		try:
-		# 			no_of_ratings = list_detail.find("span",
-		# 											 {"class":"r1dxllyb"}
-		# 											).text.split("(")[1].strip().replace(")","")
-		# 		except (IndexError, AttributeError):
-		# 			no_of_ratings = stars
-		# 		total_price = list_detail.find("div", {"class":"_tt122m"}).text.split("zł")[0].strip()
-		# 		get_price = list_detail.find("span", {"class":"_14y1gc"}).text
-		# 		if "originally" in str(get_price):
-		# 			price_per_night = get_price.split("zł")[1].strip()
-		# 			original_price = get_price.split("zł")[0].strip()
-		# 		else:
-		# 			price_per_night = get_price.split("zł")[0].strip()
-		# 			original_price = price_per_night
+		for city_html in html_list:
+			listings = city_html[1].find_all("div", {"class":"c4mnd7m"})
+			for list_detail in listings:
+				city = city_html[0]
+				title = unidecode(list_detail.find("div", {"data-testid":"listing-card-title"}).text)
+				subtitle = unidecode(list_detail.find("span", {"data-testid":"listing-card-name"}).text)
+				other_details = [item.text for item in list_detail.find_all("span", {"class":"dir dir-ltr"})]
+				for item in other_details:
+					if ("bed" in item) or ("beds" in item):
+						beds = item
+					elif "–" in item:
+						availability = item.replace("–", "-")
+				try:
+					stars = list_detail.find("span", {"class":"r1dxllyb"}).text.split("(")[0].strip()
+				except AttributeError as e:
+					stars = e
+				try:
+					no_of_ratings = list_detail.find("span",
+													 {"class":"r1dxllyb"}
+													).text.split("(")[1].strip().replace(")","")
+				except (IndexError, AttributeError):
+					no_of_ratings = stars
+				total_price = list_detail.find("div", {"class":"_tt122m"}).text.split("zł")[0].strip()
+				get_price = list_detail.find("span", {"class":"_14y1gc"}).text
+				if "originally" in str(get_price):
+					price_per_night = get_price.split("zł")[1].strip()
+					original_price = get_price.split("zł")[0].strip()
+				else:
+					price_per_night = get_price.split("zł")[0].strip()
+					original_price = price_per_night
 
-		# 		listing_data.append({"city": city,
-		# 							 "date": date.today(),
-		# 							 "title": title,
-		# 							 "subtitle": subtitle,
-		# 							 "beds": beds,
-		# 							 "price_per_night (zl)": price_per_night,
-		# 							 "original_price (zl)": original_price,
-		# 							 "total_price (zl)": total_price,
-		# 							 "availability": availability,
-		# 							 "star": stars,
-		# 							 "number_of_ratings": no_of_ratings
-		# 							 })
-		# city_listings_df = pandas.DataFrame(listing_data, columns=["city", "date", "title", "subtitle",
-		# 														   "price_per_night", "original_price", "availability",
-		# 														   "total_price", "beds", "star", "number_of_ratings",
-		# 														  ])
-		# city_listings_df.to_csv(os.path.join(save_directory, f"{self.month}_data.csv"), index=False)
-		# log.info(f"File for {self.month} saved.")
+				listing_data.append({"city": city,
+									 "date": date.today(),
+									 "title": title,
+									 "subtitle": subtitle,
+									 "beds": beds,
+									 "price_per_night (zl)": price_per_night,
+									 "original_price (zl)": original_price,
+									 "total_price (zl)": total_price,
+									 "availability": availability,
+									 "star": stars,
+									 "number_of_ratings": no_of_ratings
+									 })
+		city_listings_df = pandas.DataFrame(listing_data, columns=["city", "date", "title", "subtitle",
+																   "price_per_night (zl)", "original_price (zl)",
+																   "availability", "total_price (zl)", "beds", "star",
+																   "number_of_ratings",
+																  ])
+		city_listings_df.to_csv(os.path.join(save_directory, f"{self.month}_data.csv"), index=False)
+		log.info(f"Files for {self.month} saved.")
 
 
 
