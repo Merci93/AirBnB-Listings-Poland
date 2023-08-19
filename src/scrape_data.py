@@ -73,7 +73,7 @@ class ExtractData:
 
 			:return: lists containing html objects per city, and number of webpages per city.
 			"""
-			WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "div.f19g2zq0")))
+			WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, "div.f19g2zq0")))
 			
 			html_list = []
 			page_per_city = []
@@ -89,22 +89,21 @@ class ExtractData:
 			page = 0
 			while True:
 				page += 1
-				time.sleep(2)
-				log.info(f"Extracting data from {city} page {page}")
 				WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, "div.t1jojoys")))
+				log.info(f"Extracting html data from {city} page {page}")
 				html_body = BeautifulSoup(driver.page_source, "html.parser")
 				html_list.append((city, html_body))
 
 				try:
-					next_page_path = '//*[@id="site-content"]/div/div[3]/div/div/div/nav/div/a[6]'
 					WebDriverWait(driver, 5).until(EC.visibility_of_element_located((By.CSS_SELECTOR, "a.c1ytbx3a")))
-					next_page = driver.find_element(By.XPATH, next_page_path).click()
-				except NoSuchElementException:
-					next_page_path = '//*[@id="site-content"]/div/div[3]/div/div/div/nav/div/a[5]'
-					WebDriverWait(driver, 5).until(EC.visibility_of_element_located((By.CSS_SELECTOR, "a.c1ytbx3a")))
-					next_page = driver.find_element(By.XPATH, next_page_path).click()
-				except TimeoutException:
-					break
+					next_page = driver.find_element(By.CSS_SELECTOR, "a.c1ytbx3a").click()
+				except (TimeoutException, NoSuchElementException):
+					try:
+						WebDriverWait(driver, 5).until(EC.visibility_of_element_located((By.CSS_SELECTOR, "a.c1ytbx3a")))
+						next_page = driver.find_element(By.CSS_SELECTOR, "a.c1ytbx3a").click()
+					except TimeoutException:
+						log.info(f"Last page reached for {city}.")
+						break
 			
 			page_per_city.append([city, page])
 				
@@ -123,23 +122,9 @@ class ExtractData:
 		page_per_city = []
 		cities_not_extracted = []
 		for city in cities:
-			try:
-				time.sleep(2)
-				html_object, pages = city_data(self, city, driver)
-				html_list.append(html_object)
-				page_per_city.append(pages)
-			except (TimeoutException, AttributeError, NoSuchElementException) as e:
-				log.info(f"{e} exception occured for {city}. Waiting for 5 seconds before trying again!!!")
-				
-				try:
-					time.sleep(5)
-					log.info(f"Trying again to extract data for {city}")
-					html_object, pages = city_data(self, city, driver)
-					html_list.append(html_object)
-					page_per_city.append(pages)
-				except (TimeoutException, AttributeError, NoSuchElementException) as e:
-					log.info(f"{e} exception occured again for {city}. Skipping to next city")
-					cities_not_extracted.append((city, e))
+			html_object, pages = city_data(self, city, driver)
+			html_list.append(html_object)
+			page_per_city.append(pages)
 
 		city_pages = [(item[0], item[1]) for sublist in page_per_city for item in sublist]
 		city_pages_df = pandas.DataFrame(city_pages, columns=["city", "number_of_web_pages"])
@@ -222,6 +207,7 @@ def scrape_data(url: str = URL, month: str = MONTH,
 				output_directory: str = SAVE_EXTRACTED_DATA,
 				log_directory: str = LOG_DIRECTORY) -> None:
 	"""Scrape data using the provided CSV file containing cities."""
+	
 	scraper = ExtractData(url, month, data_source, output_directory, log_directory)
 	scraper.extract_data()
 
