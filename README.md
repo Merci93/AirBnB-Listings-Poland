@@ -15,10 +15,10 @@ This project was based on finding out and comparing the AirBnB rental listing pr
 available in these cities for different months and period of the year.
 
 ## Files
-1. Configuration.py: contains directories to data source and location where output file will be saved. The url, and
+1. **Configuration.py:** contains directories to data source and location where output file will be saved. The url, and
 months are also included in this file.
-2. logger.py: display data extraction on the command line.
-3. scrape_data.py: Data extraction script written in python.
+2. **logger.py:** display data extraction on the command line.
+3. **scrape_data.py:** Data extraction script written in python.
 
 ## Data
 AirBnB price listing data for the above mentioned cities were gathered on a monthly basis, specifically at the middle
@@ -38,14 +38,14 @@ of each month (3rd week of the month) for a period of 6 months starting from Aug
 3. Perform exploratory analysis to understand price differences between house listings and also price trend.
 
 The project is divided into the following stages:
-1. **Data Extraction**: Developed an web scrapping script using selenium, and beaustifulsoup frameworks, to perform the
+1. **Data Extraction:** Developed an web scrapping script using selenium, and beaustifulsoup frameworks, to perform the
 ETL process involving extracting data from html data and performig necessary transformations. Final data is saved as a
 CSV file.
-2. **Data Cleaning**: Since the first step is focused on data extractions, data cleaning and feature engineering was
+2. **Data Cleaning:** Since the first step is focused on data extractions, data cleaning and feature engineering was
 performed using jupyter notebook.
-3. **Exploratory Analysis**: The data eeas visualized to understand and derive insights from hidden patterns and trends
+3. **Exploratory Analysis:** The data eeas visualized to understand and derive insights from hidden patterns and trends
 in the data from different cities and in different months.
-4. **Power BI Visualization**: Using the cleaned data, a dashboard was created to show the patterns uncovered using
+4. **Power BI Visualization:** Using the cleaned data, a dashboard was created to show the patterns uncovered using
 appropriate visuals. This visualization will enable travellers and tourists make better financial planning based on
 the season they are visiting Poland and the city they intend to visit, as they will already have an insight to the
 average cost of an apartment per night.
