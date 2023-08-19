@@ -12,19 +12,7 @@ for the 16 cities in Poland which includes but might not be limited to:
 
 ## Objectives
 This project was based on finding out and comparing the AirBnB rental listing prices for different accomodations
-available in these cities for different months and period of the year. The project is divided into the following
-stages:
-1. **Data Extraction**: Developed an web scrapping script using selenium, and beaustifulsoup frameworks, to perform the
-ETL process involving extracting data from html data and performig necessary transformations. Final data is saved as a
-CSV file.
-2. **Data Cleaning**: Since the first step is focused on data extractions, data cleaning and feature engineering was
-performed using jupyter notebook.
-3. **Exploratory Analysis**: The data eeas visualized to understand and derive insights from hidden patterns and trends
-in the data from different cities and in different months.
-4. **Power BI Visualization**: Using the cleaned data, a dashboard was created to show the patterns uncovered using
-appropriate visuals. This visualization will enable travellers and tourists make better financial planning based on
-the season they are visiting Poland and the city they intend to visit, as they will already have an insight to the
-average cost of an apartment per night.
+available in these cities for different months and period of the year.
 
 ## Files
 1. Configuration.py: contains directories to data source and location where output file will be saved. The url, and
@@ -48,6 +36,19 @@ of each month (3rd week of the month) for a period of 6 months starting from Aug
 1. Develop script to extract data from AirBnB webpage on a monthly basis
 2. Extract,transform and save to drive/database.
 3. Perform exploratory analysis to understand price differences between house listings and also price trend.
+
+The project is divided into the following stages:
+1. **Data Extraction**: Developed an web scrapping script using selenium, and beaustifulsoup frameworks, to perform the
+ETL process involving extracting data from html data and performig necessary transformations. Final data is saved as a
+CSV file.
+2. **Data Cleaning**: Since the first step is focused on data extractions, data cleaning and feature engineering was
+performed using jupyter notebook.
+3. **Exploratory Analysis**: The data eeas visualized to understand and derive insights from hidden patterns and trends
+in the data from different cities and in different months.
+4. **Power BI Visualization**: Using the cleaned data, a dashboard was created to show the patterns uncovered using
+appropriate visuals. This visualization will enable travellers and tourists make better financial planning based on
+the season they are visiting Poland and the city they intend to visit, as they will already have an insight to the
+average cost of an apartment per night.
 
 #### Logging display during data extraction
 ![](images/extraction_log_display_2.png)
