@@ -71,7 +71,7 @@ class ExtractData:
 			:param city: city name
 			:param driver: configured chrome webdriver
 
-			:return: lists containing html objects per city, and number of webpages interacted with per city.
+			:return: lists containing html objects per city, and number of webpages per city.
 			"""
 			WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "div.f19g2zq0")))
 			
@@ -150,15 +150,13 @@ class ExtractData:
 		
 		return html_list
 
-	def extract_data(self) -> list:
+	def extract_data(self) -> None:
 		"""
 		Extract listing data from the return HTML object, and save as CSV files.
 		
 		Output CSV files are saved in the output_directory, in a folder named "month", while "month" is the month when
 		the data was extracted. Each file is named after the city which the data belongs to and contains the listing
 		details.
-				
-		:return: A list containing city, number_of_pages, and number_of_listings per city.
 		"""
 		save_directory = os.path.join(f"{self.output_directory}")
 		os.makedirs(save_directory, exist_ok=True)
@@ -216,7 +214,6 @@ class ExtractData:
 																  ])
 		city_listings_df.to_csv(os.path.join(save_directory, f"{self.month}_data.csv"), index=False)
 		log.info(f"Files for {self.month} saved.")
-
 
 
 def scrape_data(url: str = URL, month: str = MONTH,
