@@ -89,6 +89,7 @@ class ExtractData:
 			page = 0
 			while True:
 				page += 1
+				time.sleep(2)
 				log.info(f"Extracting data from {city} page {page}")
 				WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, "div.t1jojoys")))
 				html_body = BeautifulSoup(driver.page_source, "html.parser")
@@ -133,19 +134,19 @@ class ExtractData:
 				try:
 					time.sleep(5)
 					log.info(f"Trying again to extract data for {city}")
-					html_object, pages = city_data_points(self, city, driver)
+					html_object, pages = city_data(self, city, driver)
 					html_list.append(html_object)
 					page_per_city.append(pages)
 				except (TimeoutException, AttributeError, NoSuchElementException) as e:
 					log.info(f"{e} exception occured again for {city}. Skipping to next city")
-					cities_not_extracted.append(city)
+					cities_not_extracted.append((city, e))
 
 		city_pages = [(item[0], item[1]) for sublist in page_per_city for item in sublist]
 		city_pages_df = pandas.DataFrame(city_pages, columns=["city", "number_of_web_pages"])
 		city_pages_df.to_csv(os.path.join(self.log_directory, f"{self.month}_data_extraction.csv"), index=False)
 		
 		if len(cities_not_extracted) != 0:
-			missing_cities = pandas.DataFrame(cities_not_extracted, columns=["missing_cities"])
+			missing_cities = pandas.DataFrame(cities_not_extracted, columns=["missing_cities", "error_message"])
 			missing_cities.to_csv(os.path.join(self.log_directory, f"{self.month}_missing_data.csv"), index=False)
 		
 		return html_list
