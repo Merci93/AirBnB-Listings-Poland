@@ -1,4 +1,4 @@
-# AirBnB_Listings_in_Poland
+# AirBnB Listings in Poland
 An analysis of [AirBnB](https://www.airbnb.com) price listing in Poland's major cities for a duration of six months
 starting from August 2023. The data used for this analysis was scraped out of AirBnB webpage, specifically for select
 16 cities in Poland which includes but might not be limited to:
