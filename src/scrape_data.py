@@ -131,7 +131,7 @@ class ExtractData:
 		city_pages_df.to_csv(os.path.join(self.log_directory, f"{self.month}_data_extraction.csv"), index=False)
 		
 		if len(cities_not_extracted) != 0:
-			missing_cities = pandas.DataFrame(cities_not_extracted, columns=["missing_cities", "error_message"])
+			missing_cities = pandas.DataFrame(cities_not_extracted, columns=["missing_cities"])
 			missing_cities.to_csv(os.path.join(self.log_directory, f"{self.month}_missing_data.csv"), index=False)
 		
 		return html_list
