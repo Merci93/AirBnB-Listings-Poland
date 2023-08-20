@@ -57,9 +57,10 @@ class ExtractData:
 		"""
 		Extract data from URL using city names, and a headless browser.
 		An output CSV file is generated and saved in the log_directory that contains city names and number of pages
-		where data were extracted from each city. File is named <month>_data_extraction.csv
-		In situations where data cannot be extracted from a city or cities, a second CSV file is generated with these
-		city names and saved in the log_directory with the name <month>_missing_data.csv
+		where data were extracted from each city. File is named <month>_data_extraction.csv, and contains the following
+		columns:
+		1. City
+		2. number_of_pages
 		
 		:return: list containing HTML object for each city from the URL.
 		"""
@@ -120,19 +121,14 @@ class ExtractData:
 		cities = self.read_file()
 		html_list = []
 		page_per_city = []
-		cities_not_extracted = []
 		for city in cities:
 			html_object, pages = city_data(self, city, driver)
 			html_list.append(html_object)
 			page_per_city.append(pages)
 
 		city_pages = [(item[0], item[1]) for sublist in page_per_city for item in sublist]
-		city_pages_df = pandas.DataFrame(city_pages, columns=["city", "number_of_web_pages"])
+		city_pages_df = pandas.DataFrame(city_pages, columns=["city", "number_of_pages"])
 		city_pages_df.to_csv(os.path.join(self.log_directory, f"{self.month}_data_extraction.csv"), index=False)
-		
-		if len(cities_not_extracted) != 0:
-			missing_cities = pandas.DataFrame(cities_not_extracted, columns=["missing_cities"])
-			missing_cities.to_csv(os.path.join(self.log_directory, f"{self.month}_missing_data.csv"), index=False)
 		
 		return html_list
 
