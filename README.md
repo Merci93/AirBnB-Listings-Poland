@@ -8,6 +8,7 @@ starting from August 2023. The data used for this analysis was scraped out of Ai
 4. Gdańsk
 5. Łodz
 6. Kraków
+
 ... for a full list of cities considered in this project, see the **cities.csv** file.
 
 ## Objectives
