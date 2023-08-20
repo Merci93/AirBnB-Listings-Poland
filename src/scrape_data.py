@@ -20,26 +20,31 @@ from selenium.webdriver.support.ui import WebDriverWait
 from unidecode import unidecode
 import pandas
 
-from configuration import SAVE_EXTRACTED_DATA, DATA_SOURCE, LOG_DIRECTORY, URL, MONTH
+from configuration import SAVE_EXTRACTED_DATA, SAVE_EXTRACTED_DATA_INFO, DATA_SOURCE, LOG_DIRECTORY, URL, MONTH
 from logger import log
 
 
 class ExtractData:
 	"""A class to scrape data from given URL."""
 
-	def __init__(self, url: str = None, month: str = None, data_source: str = None,
-				 output_directory: str = None, log_directory: str = None) -> None:
+	def __init__(self, url: str = None, month: str = None, data_source: str = None, output_directory: str = None,
+				 log_directory: str = None, output_data_info: str = None) -> None:
 		"""
 		Open url
 
-		:param url: webpage url
+		:param url: webpage url.
 		:param output_directory: location to save scrapped data.
+		:param month: month when data is extracted.
+		:param data_source: path to CSV file containing city names
+		:param log_directory: path to where log files are saved.
+		:param output_data_info: path to location of CSV file containing city names and number of pages extracted.
 		"""
 		self.url = url
 		self.log_directory  = log_directory
 		self.month = month
 		self.output_directory = output_directory
 		self.data_source = data_source
+		self.output_data_info = output_data_info
 
 	def read_file(self) -> list:
 		"""
@@ -111,6 +116,7 @@ class ExtractData:
 			return html_list, page_per_city
 
 		os.makedirs(self.log_directory, exist_ok=True)
+		os.makedirs(self.output_data_info, exist_ok=True)
 
 		options = Options()
 		options.add_experimental_option("excludeSwitches", ["enable-logging"])
@@ -128,7 +134,7 @@ class ExtractData:
 
 		city_pages = [(item[0], item[1]) for sublist in page_per_city for item in sublist]
 		city_pages_df = pandas.DataFrame(city_pages, columns=["city", "number_of_pages"])
-		city_pages_df.to_csv(os.path.join(self.log_directory, f"{self.month}_data_extraction.csv"), index=False)
+		city_pages_df.to_csv(os.path.join(self.output_data_info, f"{self.month}_data_extraction.csv"), index=False)
 		
 		return html_list
 
@@ -145,7 +151,7 @@ class ExtractData:
 		
 		listing_data = []
 		html_list = [(item[0], item[1]) for sublist in self.extract_html() for item in sublist]
-		log.info(f"Processing data")
+		log.info(f"Processing data: tranforming and loading ...")
 		for city_html in html_list:
 			listings = city_html[1].find_all("div", {"class":"c4mnd7m"})
 			for list_detail in listings:
@@ -201,10 +207,11 @@ class ExtractData:
 def scrape_data(url: str = URL, month: str = MONTH,
 				data_source: str = DATA_SOURCE,
 				output_directory: str = SAVE_EXTRACTED_DATA,
-				log_directory: str = LOG_DIRECTORY) -> None:
+				log_directory: str = LOG_DIRECTORY,
+				output_data_info: str = SAVE_EXTRACTED_DATA_INFO) -> None:
 	"""Scrape data using the provided CSV file containing cities."""
 	
-	scraper = ExtractData(url, month, data_source, output_directory, log_directory)
+	scraper = ExtractData(url, month, data_source, output_directory, log_directory, output_data_info)
 	scraper.extract_data()
 
 
