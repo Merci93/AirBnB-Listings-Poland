@@ -6,6 +6,8 @@ import os
 
 from colorlog import ColoredFormatter
 
+from configuration import LOG_DIRECTORY
+
 log = logging.getLogger()
 
 
@@ -14,7 +16,7 @@ def config_logging(log_directory=None, level=logging.INFO):
 	Create logging configuration.
 
 	1. Logging to file, if log_directory is specified. The log is more detailed than printed on screen.
-		Log file name includes date and time of log creation.
+	   Log file name includes date and time of log creation.
 	2. Logging on screen
 	"""
 	if log_directory is not None:
@@ -52,4 +54,4 @@ def config_logging(log_directory=None, level=logging.INFO):
 	log.info(f"Logger configured. Logging level: {logging.getLevelName(level)}")
 
 
-config_logging()
+config_logging(LOG_DIRECTORY)
