@@ -20,6 +20,7 @@ available in these cities for different months and period of the year.
 months are also included in this file.
 2. **logger.py:** display data extraction on the command line.
 3. **scrape_data.py:** Data extraction script written in python.
+4. **log_data....txt:** A text file containing log informations.
 
 ## Data
 AirBnB price listing data for the above mentioned cities were gathered on a monthly basis, specifically at the middle
@@ -39,12 +40,12 @@ of each month (3rd week of the month) for a period of 6 months starting from Aug
 3. Perform exploratory analysis to understand price differences between house listings and also price trend.
 
 The project is divided into the following stages:
-1. **Data Extraction:** Developed an web scrapping script using selenium, and beaustifulsoup frameworks, to perform the
-ETL process involving extracting data from html data and performig necessary transformations. Final data is saved as a
+1. **Data Extraction:** Developed a web scrapping script using selenium, and beaustifulsoup frameworks, to perform the
+ETL process involving extracting data from the and performig necessary transformations. Final data is saved as a
 CSV file.
 2. **Data Cleaning:** Since the first step is focused on data extractions, data cleaning and feature engineering was
-performed using jupyter notebook.
-3. **Exploratory Analysis:** The data eeas visualized to understand and derive insights from hidden patterns and trends
+performed using an interractive platform: Google Colab.
+3. **Exploratory Analysis:** The data was visualized to understand and derive insights from hidden patterns and trends
 in the data from different cities and in different months.
 4. **Power BI Visualization:** Using the cleaned data, a dashboard was created to show the patterns uncovered using
 appropriate visuals. This visualization will enable travellers and tourists make better financial planning based on
