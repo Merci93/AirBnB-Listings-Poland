@@ -52,7 +52,7 @@ appropriate visuals. This visualization will enable travellers and tourists make
 the season they are visiting Poland and the city they intend to visit, as they will already have an insight to the
 average cost of an apartment per night.
 
-###### Logging display during data extraction
+#### Logging display during data extraction
 ![](images/extraction_log_display_2.png)
 
 ## Data Modelling
