@@ -61,9 +61,8 @@ contains one facts table and three dimension tables all linked directly to the f
 a **one to many** relationship with the facts table. The tables are as listed below:
 1. **Cities**: A dimension table containing the unique cities considered in this project.
 2. **Beds**: contains the unique number of beds in the listing, linked to the facts table using their id.
-3. **Rental_period**: contains the period (number of days) in which the listing will be available. 
-4. **Ratings**: A dimension table containing unique stars and ratings of all listings.
-5. **Apartments**: A facts table containing the apartment title, subtitles and id's linked to the dimension tables.
+3. **Rental_period**: contains the period (number of days) in which the listing will be available.
+4. **Apartments**: A facts table containing the apartment title, subtitles and id's linked to the dimension tables.
 This table also contains the price of each listing. These prices includes price per nigh, original price and total
 price per listing.
 
