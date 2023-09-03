@@ -52,8 +52,23 @@ appropriate visuals. This visualization will enable travellers and tourists make
 the season they are visiting Poland and the city they intend to visit, as they will already have an insight to the
 average cost of an apartment per night.
 
-#### Logging display during data extraction
+###### Logging display during data extraction
 ![](images/extraction_log_display_2.png)
+
+## Data Modelling
+The data model for this project was performed using the **STAR SCHEMA*** in the 3rd normal form (3NF).The model
+contains one facts table and three dimension tables all linked directly to the facts table. The dimension tables have
+a **one to many** relationship with the facts table. The tables are as listed below:
+1. **Cities**: A dimension table containing the unique cities considered in this project.
+2. **Beds**: contains the unique number of beds in the listing, linked to the facts table using their id.
+3. **Rental_period**: contains the period (number of days) in which the listing will be available. 
+4. **Ratings**: A dimension table containing unique stars and ratings of all listings.
+5. **Apartments**: A facts table containing the apartment title, subtitles and id's linked to the dimension tables.
+This table also contains the price of each listing. These prices includes price per nigh, original price and total
+price per listing.
+
+The ERD (Entity Relationship Diagram) was created using the diagramming tool [LucidChart](https://lucid.app/).
+![](images/Poland_AirBnB_ERD.png)
 
 ## Questions
 TODO
