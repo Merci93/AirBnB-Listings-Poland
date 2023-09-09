@@ -53,7 +53,7 @@ the season they are visiting Poland and the city they intend to visit, as they w
 average cost of an apartment per night.
 
 #### Logging display during data extraction
-![](images/extraction_log_display_2.png)
+![](images/extraction_log_display_3.png)
 
 ## Data Modelling
 The data model for this project was performed using the **STAR SCHEMA*** in the 3rd normal form (3NF).The model
