@@ -2,4 +2,5 @@ bs4==0.0.1
 colorlog==6.7.0
 pandas==2.0.0
 selenium==4.11.2
+tdqm==0.0.1
 unidecode==1.3.6
