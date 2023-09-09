@@ -67,7 +67,7 @@ This table also contains the price of each listing. These prices includes price 
 price per listing.
 
 The ERD (Entity Relationship Diagram) was created using the diagramming tool [LucidChart](https://lucid.app/).
-![](images/Poland_AirBnB_ERD.png)
+![](images/Poland_AirBnB.png)
 
 ## Questions
 TODO
