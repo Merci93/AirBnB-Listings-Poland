@@ -3,11 +3,12 @@ Scrapes select data from the given URL.
 Script specifically written to extract data from AirBnB webpage
 """
 
-from datetime import date
 import os
 import re
 import time
+from datetime import date
 
+import pandas
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
@@ -17,8 +18,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+from tqdm import tqdm
 from unidecode import unidecode
-import pandas
 
 from configuration import SAVE_EXTRACTED_DATA, SAVE_EXTRACTED_DATA_INFO, DATA_SOURCE, LOG_DIRECTORY, URL, MONTH
 from logger import log
@@ -85,8 +86,9 @@ class ExtractData:
 			page_per_city = []
 			city = f"{city}, Poland"
 			location_search = driver.find_element(By.CSS_SELECTOR, "button.ffc0w66").click()
-			WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, "div.cdhcwpf")))
-			location_slot = driver.find_element(By.CSS_SELECTOR, 'input.iluujbk')
+			WebDriverWait(driver, 10).until(EC.visibility_of_element_located
+                                    ((By.XPATH, '//*[@id="search-tabpanel"]/div[1]/div[1]/div[1]/label/div')))
+			location_slot = driver.find_element(By.XPATH, '//*[@id="bigsearch-query-location-input"]')
 			location_slot.send_keys(Keys.CONTROL, "a")
 			location_slot.send_keys(Keys.DELETE)
 			location_slot.send_keys(city)
@@ -105,7 +107,8 @@ class ExtractData:
 					next_page = driver.find_element(By.CSS_SELECTOR, "a.c1ytbx3a").click()
 				except (TimeoutException, NoSuchElementException):
 					try:
-						WebDriverWait(driver, 5).until(EC.visibility_of_element_located((By.CSS_SELECTOR, "a.c1ytbx3a")))
+						WebDriverWait(driver, 5).until(EC.visibility_of_element_located
+                                     ((By.CSS_SELECTOR, "a.c1ytbx3a")))
 						next_page = driver.find_element(By.CSS_SELECTOR, "a.c1ytbx3a").click()
 					except TimeoutException:
 						log.info(f"Last page reached for {city}.")
@@ -152,7 +155,7 @@ class ExtractData:
 		listing_data = []
 		html_list = [(item[0], item[1]) for sublist in self.extract_html() for item in sublist]
 		log.info(f"Processing data: tranforming and loading ...")
-		for city_html in html_list:
+		for city_html in tqdm(html_list):
 			listings = city_html[1].find_all("div", {"class":"c4mnd7m"})
 			for list_detail in listings:
 				city = city_html[0]
@@ -161,8 +164,8 @@ class ExtractData:
 				other_details = [item.text for item in list_detail.find_all("span", {"class":"dir dir-ltr"})]
 				for item in other_details:
 					if ("bed" in item) or ("beds" in item):
-						beds = item
-					elif "–" in item:
+						bed_type = item 
+					if "–" in item:
 						availability = item.replace("–", "-")
 				try:
 					stars = list_detail.find("span", {"class":"r1dxllyb"}).text.split("(")[0].strip()
@@ -187,7 +190,7 @@ class ExtractData:
 									 "date": date.today(),
 									 "title": title,
 									 "subtitle": subtitle,
-									 "beds": beds,
+									 "bed_type": bed_type,
 									 "price_per_night (zl)": price_per_night,
 									 "original_price (zl)": original_price,
 									 "total_price (zl)": total_price,
@@ -197,8 +200,8 @@ class ExtractData:
 									 })
 		city_listings_df = pandas.DataFrame(listing_data, columns=["city", "date", "title", "subtitle",
 																   "price_per_night (zl)", "original_price (zl)",
-																   "availability", "total_price (zl)", "beds", "star",
-																   "number_of_ratings",
+																   "availability", "total_price (zl)", "bed_type",
+																   "star", "number_of_ratings",
 																  ])
 		city_listings_df.to_csv(os.path.join(save_directory, f"{self.month}_data.csv"), index=False)
 		log.info(f"Files for {self.month} saved.")
