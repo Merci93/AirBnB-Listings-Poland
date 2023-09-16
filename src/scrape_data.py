@@ -6,6 +6,7 @@ Script specifically written to extract data from AirBnB webpage
 import os
 import re
 import time
+import traceback
 from datetime import date
 
 import pandas
@@ -80,12 +81,12 @@ class ExtractData:
 
 			:return: lists containing html objects per city, and number of webpages per city.
 			"""
-			WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, "div.f19g2zq0")))
+			WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, "button.f12fak3r")))
 			
 			html_list = []
 			page_per_city = []
 			city = f"{city}, Poland"
-			location_search = driver.find_element(By.CSS_SELECTOR, "button.ffc0w66").click()
+			location_search = driver.find_element(By.CSS_SELECTOR, "button.f12fak3r").click()
 			WebDriverWait(driver, 10).until(EC.visibility_of_element_located
                                     ((By.XPATH, '//*[@id="search-tabpanel"]/div[1]/div[1]/div[1]/label/div')))
 			location_slot = driver.find_element(By.XPATH, '//*[@id="bigsearch-query-location-input"]')
@@ -111,7 +112,7 @@ class ExtractData:
                                      ((By.CSS_SELECTOR, "a.c1ytbx3a")))
 						next_page = driver.find_element(By.CSS_SELECTOR, "a.c1ytbx3a").click()
 					except TimeoutException:
-						log.info(f"Last page reached for {city}.")
+						log.warning(f"Last page reached for {city}.")
 						break
 			
 			page_per_city.append([city, page])
@@ -215,7 +216,12 @@ def scrape_data(url: str = URL, month: str = MONTH,
 	"""Scrape data using the provided CSV file containing cities."""
 	
 	scraper = ExtractData(url, month, data_source, output_directory, log_directory, output_data_info)
-	scraper.extract_data()
+	try:
+		scraper.extract_data()
+	except (TimeoutException, NoSuchElementException) as e:
+		traceback_string = traceback.format_exc()
+		traceback_string = traceback_string.split("Message")[0]
+		log.warning(f"An exceptionoccured. \nCheck log for description. Terminating program. \n\n{traceback_string}")
 
 
 if __name__ == "__main__":
