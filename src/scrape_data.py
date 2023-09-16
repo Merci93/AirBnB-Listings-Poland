@@ -138,7 +138,7 @@ class ExtractData:
 
 		city_pages = [(item[0], item[1]) for sublist in page_per_city for item in sublist]
 		city_pages_df = pandas.DataFrame(city_pages, columns=["city", "number_of_pages"])
-		city_pages_df.to_csv(os.path.join(self.output_data_info, f"{self.month}_data_extraction.csv"), index=False)
+		city_pages_df.to_csv(os.path.join(self.output_data_info, f"{date.today()}_data_extraction.csv"), index=False)
 		
 		return html_list
 
@@ -204,8 +204,8 @@ class ExtractData:
 																   "availability", "total_price (zl)", "bed_type",
 																   "star", "number_of_ratings",
 																  ])
-		city_listings_df.to_csv(os.path.join(save_directory, f"{self.month}_data.csv"), index=False)
-		log.info(f"Files for {self.month} saved.")
+		city_listings_df.to_csv(os.path.join(save_directory, f"{date.today()}_data.csv"), index=False)
+		log.info(f"Files for {date.today()} saved.")
 
 
 def scrape_data(url: str = URL, month: str = MONTH,
