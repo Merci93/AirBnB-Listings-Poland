@@ -22,28 +22,26 @@ from selenium.webdriver.support.ui import WebDriverWait
 from tqdm import tqdm
 from unidecode import unidecode
 
-from configuration import SAVE_EXTRACTED_DATA, SAVE_EXTRACTED_DATA_INFO, DATA_SOURCE, LOG_DIRECTORY, URL, MONTH
+from configuration import SAVE_EXTRACTED_DATA, SAVE_EXTRACTED_DATA_INFO, DATA_SOURCE, LOG_DIRECTORY, URL
 from logger import log
 
 
 class ExtractData:
 	"""A class to scrape data from given URL."""
 
-	def __init__(self, url: str = None, month: str = None, data_source: str = None, output_directory: str = None,
+	def __init__(self, url: str = None, data_source: str = None, output_directory: str = None,
 				 log_directory: str = None, output_data_info: str = None) -> None:
 		"""
 		Open url
 
 		:param url: webpage url.
 		:param output_directory: location to save scrapped data.
-		:param month: month when data is extracted.
 		:param data_source: path to CSV file containing city names
 		:param log_directory: path to where log files are saved.
 		:param output_data_info: path to location of CSV file containing city names and number of pages extracted.
 		"""
 		self.url = url
 		self.log_directory  = log_directory
-		self.month = month
 		self.output_directory = output_directory
 		self.data_source = data_source
 		self.output_data_info = output_data_info
@@ -208,14 +206,14 @@ class ExtractData:
 		log.info(f"Files for {date.today()} saved.")
 
 
-def scrape_data(url: str = URL, month: str = MONTH,
+def scrape_data(url: str = URL,
 				data_source: str = DATA_SOURCE,
 				output_directory: str = SAVE_EXTRACTED_DATA,
 				log_directory: str = LOG_DIRECTORY,
 				output_data_info: str = SAVE_EXTRACTED_DATA_INFO) -> None:
 	"""Scrape data using the provided CSV file containing cities."""
 	
-	scraper = ExtractData(url, month, data_source, output_directory, log_directory, output_data_info)
+	scraper = ExtractData(url, data_source, output_directory, log_directory, output_data_info)
 	try:
 		scraper.extract_data()
 	except (TimeoutException, NoSuchElementException) as e:
