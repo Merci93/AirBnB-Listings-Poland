@@ -166,7 +166,7 @@ class ExtractData:
 				other_details = [item.text for item in list_detail.find_all("span", {"class":"dir dir-ltr"})]
 				for item in other_details:
 					if ("bed" in item) or ("beds" in item):
-						bed_type = item 
+						bed_size = item 
 					if "–" in item:
 						availability = item.replace("–", "-")
 				try:
@@ -192,7 +192,7 @@ class ExtractData:
 									 "date": date.today(),
 									 "title": title,
 									 "subtitle": subtitle,
-									 "bed_type": bed_type,
+									 "bed_type": bed_size,
 									 "price_per_night (zl)": price_per_night,
 									 "original_price (zl)": original_price,
 									 "total_price (zl)": total_price,
