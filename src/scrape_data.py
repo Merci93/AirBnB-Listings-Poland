@@ -96,7 +96,10 @@ class ExtractData:
 			page = 0
 			while True:
 				page += 1
-				WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, "div.t1jojoys")))
+				try:
+					WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, "div.t1jojoys")))
+				except TimeoutException:
+					pass
 				log.info(f"Extracting html data from {city} page {page}")
 				html_body = BeautifulSoup(driver.page_source, "html.parser")
 				html_list.append((city, html_body))
