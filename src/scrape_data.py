@@ -22,7 +22,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from tqdm import tqdm
 from unidecode import unidecode
 
-from configuration import SAVE_EXTRACTED_DATA, SAVE_EXTRACTED_DATA_INFO, DATA_SOURCE, LOG_DIRECTORY, URL
+from configuration import SAVE_EXTRACTED_DATA, SAVE_EXTRACTED_DATA_INFO, DATA_SOURCE, LOG_DIRECTORY, URL, HTML_DATA
 from logger import log
 
 
@@ -30,7 +30,7 @@ class ExtractData:
 	"""A class to scrape data from given URL."""
 
 	def __init__(self, url: str = None, data_source: str = None, output_directory: str = None,
-				 log_directory: str = None, output_data_info: str = None) -> None:
+				 log_directory: str = None, output_data_info: str = None, html_directory: str = None) -> None:
 		"""
 		Open url
 
@@ -45,6 +45,7 @@ class ExtractData:
 		self.output_directory = output_directory
 		self.data_source = data_source
 		self.output_data_info = output_data_info
+		self.html_directory = html_directory
 
 	def read_file(self) -> list:
 		"""
@@ -117,10 +118,14 @@ class ExtractData:
 						break
 			
 			page_per_city.append([city, page])
+
+			with open(os.path.join(self.html_directory, f"{city}_{date.today()}.txt"), "w", encoding="utf-8") as file:
+				file.write(str(html_list))
 				
 			return html_list, page_per_city
 
 		os.makedirs(self.log_directory, exist_ok=True)
+		os.makedirs(self.html_directory, exist_ok=True)
 		os.makedirs(self.output_data_info, exist_ok=True)
 
 		options = Options()
@@ -164,11 +169,13 @@ class ExtractData:
 				title = unidecode(list_detail.find("div", {"data-testid":"listing-card-title"}).text)
 				subtitle = unidecode(list_detail.find("span", {"data-testid":"listing-card-name"}).text)
 				other_details = [item.text for item in list_detail.find_all("span", {"class":"dir dir-ltr"})]
-				for item in other_details:
-					if ("bed" in item) or ("beds" in item):
-						bed_size = item 
-					if "–" in item:
-						availability = item.replace("–", "-")
+				bed_type = [item for item in other_details if ("bed" in item) or ("beds" in item)][0]
+				availability = [item for item in other_details if "–" in item][0]
+				# for item in other_details:
+				# 	if ("bed" in item) or ("beds" in item):
+				# 		bed_size = item 
+				# 	if "–" in item:
+				# 		availability = item.replace("–", "-")
 				try:
 					stars = list_detail.find("span", {"class":"r1dxllyb"}).text.split("(")[0].strip()
 				except AttributeError as e:
@@ -213,10 +220,11 @@ def scrape_data(url: str = URL,
 				data_source: str = DATA_SOURCE,
 				output_directory: str = SAVE_EXTRACTED_DATA,
 				log_directory: str = LOG_DIRECTORY,
-				output_data_info: str = SAVE_EXTRACTED_DATA_INFO) -> None:
+				output_data_info: str = SAVE_EXTRACTED_DATA_INFO,
+				html_directory: str = HTML_DATA) -> None:
 	"""Scrape data using the provided CSV file containing cities."""
 	
-	scraper = ExtractData(url, data_source, output_directory, log_directory, output_data_info)
+	scraper = ExtractData(url, data_source, output_directory, log_directory, output_data_info, html_directory)
 	try:
 		scraper.extract_data()
 	except (TimeoutException, NoSuchElementException) as e:
