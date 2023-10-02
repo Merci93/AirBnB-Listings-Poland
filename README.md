@@ -1,7 +1,7 @@
 # AirBnB Listings in Poland
 An analysis of [AirBnB](https://www.airbnb.com) price listing in Poland's major cities for a duration of six months
 starting from October 2023. The data used for this analysis was scraped out of AirBnB webpage, specifically for select
-16 cities in Poland which includes but might not be limited to:
+14 cities in Poland which includes but might not be limited to:
 1. Warsaw
 2. Wrocław
 3. Katowice
@@ -43,8 +43,8 @@ explore the price trend.
 
 The project is divided into the following stages:
 1. **Data Extraction:** Developed a web scrapping script (using selenium and beaustifulsoup frameworks) to perform the
-ETL process involving data extraction from the and performing necessary transformations. Final data is saved as a
-CSV file.
+ETL process involving data extraction from the and performing necessary transformations. The extracted html data is
+saved as txt files, and the final data is saved as a CSV file.
 2. **Data Cleaning:** Since the first step is focused on data extractions, data cleaning and feature engineering was
 performed using an cloud platform: Azure Databaricks.
 3. **Exploratory Analysis:** The data was visualized to understand and derive insights from hidden patterns and trends
