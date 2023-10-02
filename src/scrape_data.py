@@ -118,9 +118,6 @@ class ExtractData:
 						break
 			
 			page_per_city.append([city, page])
-
-			with open(os.path.join(self.html_directory, f"{city}_{date.today()}.txt"), "w", encoding="utf-8") as file:
-				file.write(str(html_list))
 				
 			return html_list, page_per_city
 
@@ -145,6 +142,9 @@ class ExtractData:
 		city_pages = [(item[0], item[1]) for sublist in page_per_city for item in sublist]
 		city_pages_df = pandas.DataFrame(city_pages, columns=["city", "number_of_pages"])
 		city_pages_df.to_csv(os.path.join(self.output_data_info, f"{date.today()}_data_extraction.csv"), index=False)
+
+		with open(os.path.join(self.html_directory, f"{date.today()}.txt"), "w", encoding="utf-8") as file:
+				file.write(str(html_list))
 		
 		return html_list
 
@@ -169,13 +169,15 @@ class ExtractData:
 				title = unidecode(list_detail.find("div", {"data-testid":"listing-card-title"}).text)
 				subtitle = unidecode(list_detail.find("span", {"data-testid":"listing-card-name"}).text)
 				other_details = [item.text for item in list_detail.find_all("span", {"class":"dir dir-ltr"})]
-				bed_type = [item for item in other_details if ("bed" in item) or ("beds" in item)][0]
-				availability = [item for item in other_details if "–" in item][0]
-				# for item in other_details:
-				# 	if ("bed" in item) or ("beds" in item):
-				# 		bed_size = item 
-				# 	if "–" in item:
-				# 		availability = item.replace("–", "-")
+				for item in other_details:
+					if "bed" in item or "beds" in item:
+						bed_types = item
+					else:
+						beds_types = "N/A"
+					if "–" in item:
+						availability = item.replace("–", "-")
+					else:
+						availability = "N/A"
 				try:
 					stars = list_detail.find("span", {"class":"r1dxllyb"}).text.split("(")[0].strip()
 				except AttributeError as e:
@@ -199,7 +201,7 @@ class ExtractData:
 									 "date": date.today(),
 									 "title": title,
 									 "subtitle": subtitle,
-									 "bed_type": bed_size,
+									 "bed_type": bed_types,
 									 "price_per_night (zl)": price_per_night,
 									 "original_price (zl)": original_price,
 									 "total_price (zl)": total_price,
