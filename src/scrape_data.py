@@ -71,7 +71,7 @@ class ExtractData:
 		:return: list containing HTML object for each city from the URL.
 		"""
 
-		def city_data(self, city, driver) -> list:
+		def city_data(city: str, driver) -> list:
 			"""
 			Extract select data using the city name and webdriver.
 
@@ -80,19 +80,19 @@ class ExtractData:
 
 			:return: lists containing html objects per city, and number of webpages per city.
 			"""
-			WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, "button.f12fak3r")))
+			WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, "button.ffgcxut")))
 			
 			html_list = []
 			page_per_city = []
 			city = f"{city}, Poland"
-			location_search = driver.find_element(By.CSS_SELECTOR, "button.f12fak3r").click()
+			location_search = driver.find_element(By.CSS_SELECTOR, "button.ffgcxut").click()
 			WebDriverWait(driver, 10).until(EC.visibility_of_element_located
                                     ((By.XPATH, '//*[@id="search-tabpanel"]/div[1]/div[1]/div[1]/label/div')))
 			location_slot = driver.find_element(By.XPATH, '//*[@id="bigsearch-query-location-input"]')
 			location_slot.send_keys(Keys.CONTROL, "a")
 			location_slot.send_keys(Keys.DELETE)
 			location_slot.send_keys(city)
-			click_search = driver.find_element(By.CSS_SELECTOR, "button.brqqy3t").click()
+			click_search = driver.find_element(By.CSS_SELECTOR, "button.b1tqc7mb").click()
 			
 			page = 0
 			while True:
@@ -135,7 +135,7 @@ class ExtractData:
 		html_list = []
 		page_per_city = []
 		for city in cities:
-			html_object, pages = city_data(self, city, driver)
+			html_object, pages = city_data(city, driver)
 			html_list.append(html_object)
 			page_per_city.append(pages)
 
@@ -143,8 +143,9 @@ class ExtractData:
 		city_pages_df = pandas.DataFrame(city_pages, columns=["city", "number_of_pages"])
 		city_pages_df.to_csv(os.path.join(self.output_data_info, f"{date.today()}_data_extraction.csv"), index=False)
 
-		with open(os.path.join(self.html_directory, f"{date.today()}.txt"), "w", encoding="utf-8") as file:
-				file.write(str(html_list))
+		# Save extracted html data as a txt file (Optional as file is very large)
+		# with open(os.path.join(self.html_directory, f"{date.today()}.txt"), "w", encoding="utf-8") as file:
+		# 		file.write(str(html_list))
 		
 		return html_list
 
@@ -169,19 +170,18 @@ class ExtractData:
 				title = unidecode(list_detail.find("div", {"data-testid":"listing-card-title"}).text)
 				subtitle = unidecode(list_detail.find("span", {"data-testid":"listing-card-name"}).text)
 				other_details = [item.text for item in list_detail.find_all("span", {"class":"dir dir-ltr"})]
+				bed_types = "N/A"
+				availability = "N/A"
 				for item in other_details:
 					if "bed" in item or "beds" in item:
 						bed_types = item
-					else:
-						beds_types = "N/A"
 					if "–" in item:
 						availability = item.replace("–", "-")
-					else:
-						availability = "N/A"
+						
 				try:
 					stars = list_detail.find("span", {"class":"r1dxllyb"}).text.split("(")[0].strip()
 				except AttributeError as e:
-					stars = e
+					stars = str(e)
 				try:
 					no_of_ratings = list_detail.find("span",
 													 {"class":"r1dxllyb"}
@@ -209,11 +209,13 @@ class ExtractData:
 									 "star": stars,
 									 "number_of_ratings": no_of_ratings
 									 })
+		log.info(f"Transforming into a dataframe...")
 		city_listings_df = pandas.DataFrame(listing_data, columns=["city", "date", "title", "subtitle",
 																   "price_per_night (zl)", "original_price (zl)",
 																   "availability", "total_price (zl)", "bed_type",
 																   "star", "number_of_ratings",
 																  ])
+		log.info(f"Saving CSV file...")
 		city_listings_df.to_csv(os.path.join(save_directory, f"{date.today()}_data.csv"), index=False)
 		log.info(f"Files for {date.today()} saved.")
 
@@ -232,7 +234,7 @@ def scrape_data(url: str = URL,
 	except (TimeoutException, NoSuchElementException) as e:
 		traceback_string = traceback.format_exc()
 		traceback_string = traceback_string.split("Message")[0]
-		log.warning(f"An exceptionoccured. \nCheck log for description. Terminating program. \n\n{traceback_string}")
+		log.warning(f"An exception occurred. \nCheck log for description. Terminating program. \n\n{traceback_string}")
 
 
 if __name__ == "__main__":
