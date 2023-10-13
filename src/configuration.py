@@ -1,9 +1,9 @@
 """Contains the directory/folder where the extracted data will be saved."""
 
-SAVE_EXTRACTED_DATA = path_to_save_extracted_data
-SAVE_EXTRACTED_DATA_INFO = path_to_save_information_about_extracted_data
-DATA_SOURCE = path_to_locate_csv_file_with_city_names
-LOG_DIRECTORY = path_to_log_directory
+SAVE_EXTRACTED_DATA = r"C:\Users\<path\to\this\location>\AirBnB_Listings_in_Poland\data"
+SAVE_EXTRACTED_DATA_INFO = r"C:\Users\<path\to\this\location>\AirBnB_Listings_in_Poland\data\data_info"
+HTML_DATA = r"C:\Users\<path\to\this\location>\AirBnB_Listings_in_Poland\data\html_data"
+DATA_SOURCE = r"C:\Users\<path\to\this\location>\AirBnB_Listings_in_Poland"
+LOG_DIRECTORY = r"C:\Users\<path\to\this\location>\AirBnB_Listings_in_Poland\logs"
 
 URL = "https://www.airbnb.com"
-
