@@ -13,12 +13,11 @@ x-airflow-common:
     - ./logs:/opt/airflow/logs
     - ./plugins:/opt/airflow/plugins
   user: "${AIRFLOW_UID:-50000}:0"
+  networks:
+    airbnb:
 
 services:
   airflow-init:
-    build:
-      context: .
-      dockerfile: Dockerfile
     <<: *airflow-common
     container_name: airflow-init
     command: ["bash", "-c", "airflow db init && airflow db migrate"]
@@ -34,6 +33,8 @@ services:
       - .:/sources
     depends_on:
       - postgres
+    networks:
+      airbnb:
 
   airflow-webserver:
     <<: *airflow-common
@@ -69,7 +70,7 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: airflow_db
     volumes:
-      - db-data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data
     ports:
       - 5432:5432
     restart: always
@@ -88,10 +89,39 @@ services:
     networks:
       - airbnb
 
+  mongo:
+    image: mongo
+    container_name: mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: user123
+      MONGO_INITDB_ROOT_PASSWORD: password
+    ports:
+      - 27017:27017
+    restart: always
+    networks:
+      - airbnb
+    volumes:
+      - mongo-data:/data/db
+
+  mongo-express:
+    image: mongo-express
+    container_name: mongo-express
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: user123
+      ME_CONFIG_MONGODB_ADMINPASSWORD: password
+      ME_CONFIG_MONGODB_URL: mongodb://user123:password@mongo:27017/
+      ME_CONFIG_MONGODB_SERVER: mongo
+    ports:
+      - 8081:8081
+    restart: always
+    networks:
+      - airbnb
+
 volumes:
-  db-data:
+  postgres-data:
+    driver: local
+  mongo-data:
     driver: local
 
 networks:
   airbnb:
-
