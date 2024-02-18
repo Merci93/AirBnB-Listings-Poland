@@ -1,0 +1,127 @@
+version: '3.9'
+x-airflow-common:
+  &airflow-common
+  image: apache/airflow:slim-latest
+  environment:
+    &airflow-common-env
+    AIRFLOW_EXECUTOR: LocalExecutor
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://postgres:postgres@postgres/airflow_db
+    AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+    AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session'
+  volumes:
+    - ./dags:/opt/airflow/dags
+    - ./logs:/opt/airflow/logs
+    - ./plugins:/opt/airflow/plugins
+  user: "${AIRFLOW_UID:-50000}:0"
+  networks:
+    airbnb:
+
+services:
+  airflow-init:
+    <<: *airflow-common
+    container_name: airflow-init
+    command: ["bash", "-c", "airflow db init && airflow db migrate"]
+    environment:
+      <<: *airflow-common-env
+      _AIRFLOW_DB_MIGRATE: 'true'
+      _AIRFLOW_WWW_USER_CREATE: 'true'
+      _AIRFLOW_WWW_USER_USERNAME: airflow
+      _AIRFLOW_WWW_USER_PASSWORD: airflow
+      _AIRFLOW_WWW_USER_EMAIL: user123@gmail.com
+      _AIRFLOW_WWW_USER_ROLE: Admin
+    volumes:
+      - .:/sources
+    depends_on:
+      - postgres
+    networks:
+      airbnb:
+
+  airflow-webserver:
+    <<: *airflow-common
+    container_name: airflow-webserver
+    command: webserver
+    environment:
+      <<: *airflow-common-env 
+    ports:
+      - 8080:8080
+    restart: always
+    networks:
+      - airbnb
+    depends_on:
+      - airflow-init
+
+  airflow-scheduler:
+    <<: *airflow-common
+    container_name: airflow-scheduler
+    command: scheduler
+    environment:
+      <<: *airflow-common-env
+    restart: always
+    networks:
+      - airbnb
+    depends_on:
+      - airflow-init
+
+  postgres:
+    image: postgres:15.5-alpine
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: airflow_db
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    restart: always
+    networks:
+      - airbnb
+
+  pgadmin:
+    image: dpage/pgadmin4:8
+    container_name: pg-admin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: user123@gmail.com
+      PGADMIN_DEFAULT_PASSWORD: postgres
+    ports:
+      - 5050:80
+    restart: always
+    networks:
+      - airbnb
+
+  mongo:
+    image: mongo
+    container_name: mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: user123
+      MONGO_INITDB_ROOT_PASSWORD: password
+    ports:
+      - 27017:27017
+    restart: always
+    networks:
+      - airbnb
+    volumes:
+      - mongo-data:/data/db
+
+  mongo-express:
+    image: mongo-express
+    container_name: mongo-express
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: user123
+      ME_CONFIG_MONGODB_ADMINPASSWORD: password
+      ME_CONFIG_MONGODB_URL: mongodb://user123:password@mongo:27017/
+      ME_CONFIG_MONGODB_SERVER: mongo
+    ports:
+      - 8081:8081
+    restart: always
+    networks:
+      - airbnb
+
+volumes:
+  postgres-data:
+    driver: local
+  mongo-data:
+    driver: local
+
+networks:
+  airbnb:
