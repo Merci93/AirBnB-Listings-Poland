@@ -16,11 +16,11 @@ class Connection:
         with open(connection_file, "r") as f:
             data = yaml.safe_load(f)
         try:
-            self.connection = psycopg2.connect(db_name = data["db_name"],
-                                               user = data["user"],
-                                               password = data["password"],
-                                               host = data["host"],
-                                               port = data["port"],
+            self.connection = psycopg2.connect(dbname=data["db_name"],
+                                               user=data["user"],
+                                               password=data["password"],
+                                               host=data["host"],
+                                               port=data["port"],
                                                )
         except psycopg2.OperationalError:
             raise "Unable to connect. Please check parameters"
@@ -33,8 +33,9 @@ class Connection:
         """Create a spark Dataframe from the data."""
         return self.spark.createDataFrame(data)
 
-    def load_data(df: DataFrame) -> None:
+    def stage_data(self, data: list[dict[str]]) -> None:
         """Load data into the database."""
+        df = self.transform_to_df(data)
         pass
     
         
