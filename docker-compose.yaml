@@ -1,4 +1,4 @@
-version: '3.9'
+version: "3.9"
 x-airflow-common:
   &airflow-common
   image: apache/airflow:slim-latest
@@ -6,8 +6,8 @@ x-airflow-common:
     &airflow-common-env
     AIRFLOW_EXECUTOR: LocalExecutor
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://postgres:postgres@postgres/airflow_db
-    AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
-    AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session'
+    AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    AIRFLOW__API__AUTH_BACKENDS: "airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session"
   volumes:
     - ./dags:/opt/airflow/dags
     - ./logs:/opt/airflow/logs
@@ -23,8 +23,8 @@ services:
     command: ["bash", "-c", "airflow db init && airflow db migrate"]
     environment:
       <<: *airflow-common-env
-      _AIRFLOW_DB_MIGRATE: 'true'
-      _AIRFLOW_WWW_USER_CREATE: 'true'
+      _AIRFLOW_DB_MIGRATE: "true"
+      _AIRFLOW_WWW_USER_CREATE: "true"
       _AIRFLOW_WWW_USER_USERNAME: airflow
       _AIRFLOW_WWW_USER_PASSWORD: airflow
       _AIRFLOW_WWW_USER_EMAIL: user123@gmail.com
@@ -34,7 +34,7 @@ services:
     depends_on:
       - postgres
     networks:
-      airbnb:
+      - airbnb
 
   airflow-webserver:
     <<: *airflow-common
