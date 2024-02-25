@@ -58,7 +58,8 @@ The ERD (Entity Relationship Diagram) was created using the diagramming tool [Lu
 3. The containers are accessible as follows:
     - Airflow: >>> To be added
     - PostgreSQL PgAdmin: >>> To be added
-    - MongoDB Compass: >>> To be added
+    - Mongo-expres: >>> To be added default user: admin, default password: pass
+4. To stop/close the application, run `docker-compose down --volumes --rmi all`. This will close all containers, pull down all the volumes that has been setup and also removed all pulled docker images.
 
 
 ## Airflow
