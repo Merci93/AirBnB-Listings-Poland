@@ -11,7 +11,7 @@ class ExtractData:
     """Perform data extraction and transformation form HTML data."""
 
     @staticmethod
-    def extract_data(html_data: list[str]) -> None:
+    def extract_and_transform_data(html_data: list[str]) -> None:
         """
         Extract listing data from the return HTML object, and return a pandas dataframe.
 
