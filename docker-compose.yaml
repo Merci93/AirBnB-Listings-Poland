@@ -68,7 +68,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: airflow_db
+      POSTGRES_DB: airbnb
     volumes:
       - postgres-data:/var/lib/postgresql/data
     ports:
