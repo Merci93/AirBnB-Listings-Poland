@@ -1,0 +1,7 @@
+# PostgreSQL database connection data.
+staging_db: "staging"
+main_db: "airbnb"
+user: "postgres"
+password: "postgres"
+host: "localhost"
+port: 5432

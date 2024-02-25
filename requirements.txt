@@ -3,7 +3,8 @@ colorlog
 connexion[swagger-ui]
 pandas
 psycopg2-binary==2.9.1
-pyspark
+PySpark
+PyYaml
 selenium
 tdqm
 unidecode
