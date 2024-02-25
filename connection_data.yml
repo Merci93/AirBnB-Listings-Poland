@@ -1,5 +1,6 @@
 # PostgreSQL database connection data.
-db_name: "airbnb"
+staging_db: "staging"
+main_db: "airbnb"
 user: "postgres"
 password: "postgres"
 host: "localhost"
