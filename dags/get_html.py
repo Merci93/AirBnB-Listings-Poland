@@ -3,7 +3,9 @@
 import pandas as pd
 from bs4 import BeautifulSoup
 from selenium import webdriver
-from selenium.common.exceptions import NoSuchElementException, TimeoutException, ElementNotInteractableException
+from selenium.common.exceptions import (ElementNotInteractableException,
+                                        NoSuchElementException,
+                                        TimeoutException)
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -24,7 +26,7 @@ class ExtractHtml:
         options.add_argument('--log-level=3')
         options.add_argument("--headless")
         options.add_experimental_option("excludeSwitches", ["enable-logging"])
-        self.driver = webdriver.Chrome(options = options)
+        self.driver = webdriver.Chrome(options=options)
         self.driver.get(url)
 
         try:
@@ -65,9 +67,11 @@ class ExtractHtml:
 
             try:
                 click_path = '//*[@id="search-tabpanel"]/div[1]/div[1]'
-                location_search = self.driver.find_element(By.XPATH, click_path).click()
+                location_search = self.driver.find_element(By.XPATH, click_path)
+                location_search.click()
             except (NoSuchElementException, ElementNotInteractableException):
-                location_search = self.driver.find_element(By.CSS_SELECTOR, "button.ffgcxut").click()
+                location_search = self.driver.find_element(By.CSS_SELECTOR, "button.ffgcxut")
+                location_search.click()
 
             WebDriverWait(self.driver, 10).until(
                 EC.visibility_of_element_located(
@@ -79,7 +83,8 @@ class ExtractHtml:
             location_slot.send_keys(Keys.CONTROL, "a")
             location_slot.send_keys(Keys.DELETE)
             location_slot.send_keys(city)
-            click_search = self.driver.find_element(By.CSS_SELECTOR, "button.b1tqc7mb").click()
+            click_search = self.driver.find_element(By.CSS_SELECTOR, "button.b1tqc7mb")
+            click_search.click()
 
             html_list = []
 
@@ -98,12 +103,14 @@ class ExtractHtml:
                     WebDriverWait(self.driver, 5).until(
                         EC.visibility_of_element_located((By.CSS_SELECTOR, "a.c1ytbx3a"))
                         )
-                    next_page = self.driver.find_element(By.CSS_SELECTOR, "a.c1ytbx3a").click()
+                    next_page = self.driver.find_element(By.CSS_SELECTOR, "a.c1ytbx3a")
+                    next_page.click()
                 except (TimeoutException, NoSuchElementException):
                     try:
-                        WebDriverWait(self.driver, 5).until(EC.visibility_of_element_located
-                                        ((By.CSS_SELECTOR, "a.c1ytbx3a")))
-                        next_page = self.driver.find_element(By.CSS_SELECTOR, "a.c1ytbx3a").click()
+                        WebDriverWait(self.driver, 5).until(EC.visibility_of_element_located(
+                            (By.CSS_SELECTOR, "a.c1ytbx3a")))
+                        next_page = self.driver.find_element(By.CSS_SELECTOR, "a.c1ytbx3a")
+                        next_page.click()
                     except TimeoutException:
                         break
             return html_list
