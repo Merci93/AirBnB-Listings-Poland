@@ -3,9 +3,11 @@
 import pandas as pd
 from bs4 import BeautifulSoup
 from selenium import webdriver
-from selenium.common.exceptions import (ElementNotInteractableException,
-                                        NoSuchElementException,
-                                        TimeoutException)
+from selenium.common.exceptions import (
+    ElementNotInteractableException,
+    NoSuchElementException,
+    TimeoutException,
+)
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -34,13 +36,13 @@ class ExtractHtml:
         except (NoSuchElementException, TimeoutException):
             pass
 
-    def read_file(self) -> list:
+    def read_file(self, file_path: str) -> list:
         """
         Reads in the csv file containing city names.
 
         :return: A list containing city names.
         """
-        cities = pd.read_csv("../cities.csv")
+        cities = pd.read_csv(file_path)
         city_list = [city['Cities'] for _, city in cities.iterrows()]
         return city_list
 
@@ -115,7 +117,7 @@ class ExtractHtml:
                         break
             return html_list
 
-        cities = self.read_file()
+        cities = self.read_file("./cities/cities.csv")
         html_list = [city_data(f"{city}, Poland") for city in cities]
         self.driver.close()
         return html_list
