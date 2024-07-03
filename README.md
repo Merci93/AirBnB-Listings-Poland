@@ -18,11 +18,11 @@ A data engineering project using [AirBnB](https://www.airbnb.com) listings in se
 
 ## Objectives
 This project is aimed at building an ETL pipeline that includes the following:
-    i. data collection - webscraping data from airbnb listing page.
-    ii. cleaning and transformation - extracting useful data from the html, and transforming into a Pandas dataframe.
-    iii. loading into PostgreSQL database.
-    iv. Orchestrating with airflow.
-    v. containerization using docker.
+1. Data collection - webscraping data from airbnb listing page.
+2. Cleaning and transformation - extracting useful data from the html, and transforming into a Pandas dataframe.
+3. Loading into PostgreSQL database.
+4. Orchestrating with airflow.
+5. Containerization using docker.
 
 
 ## Approach
