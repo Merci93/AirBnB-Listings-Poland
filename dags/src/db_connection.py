@@ -13,7 +13,6 @@ class Connection:
 
         :param: db_name: An indicator of which database to be connected to - staging or main
         """
-        database_name = None
         if db_name == "staging":
             database_name = config.settings.staging_db
         elif db_name == "main":
