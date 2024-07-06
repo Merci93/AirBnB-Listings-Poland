@@ -3,7 +3,6 @@ colorlog==6.8.2
 connexion[swagger-ui]==3.1.0
 pandas==2.2.2
 psycopg2-binary==2.9.1
-# PySpark
 PyYaml==6.0.1
 selenium==4.22.0
 tqdm==4.66.4
