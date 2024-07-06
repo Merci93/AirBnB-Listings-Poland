@@ -11,7 +11,7 @@ class Connection:
         """
         Create connection to PostgreSQL staging database.
 
-        :param: db_name: An indicator of which database to be connected to - staging or main
+        :param: db_name: An indicator of which database to be connected to. Values: "staging" or "main"
         """
         if db_name == "staging":
             database_name = config.settings.staging_db
