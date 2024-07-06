@@ -7,8 +7,8 @@ config.init_settings()
 
 
 class Connection:
-    def db_connect(self) -> psycopg2.connect:
-        """Create connection to PostgreSQL database."""
+    def staging_db_connect(self) -> psycopg2.connect:
+        """Create connection to PostgreSQL staging database."""
         try:
             connection = psycopg2.connect(dbname=config.settings.staging_db,
                                           user=config.settings.user,
@@ -20,6 +20,23 @@ class Connection:
         except psycopg2.OperationalError:
             raise psycopg2.OperationalError("Unable to connect. Please check parameters")
 
-    def close_connection(self) -> psycopg2:
-        """Close active connections to the database."""
-        self.db_connect.close()
+    def main_db_connect(self) -> psycopg2.connect:
+        """Create connection to PostgreSQL main database."""
+        try:
+            connection = psycopg2.connect(dbname=config.settings.main_db,
+                                          user=config.settings.user,
+                                          password=config.settings.password,
+                                          host=config.settings.host,
+                                          port=config.settings.port,
+                                          )
+            return connection
+        except psycopg2.OperationalError:
+            raise psycopg2.OperationalError("Unable to connect. Please check parameters")
+
+    def close_staging_db_connection(self) -> psycopg2:
+        """Close active connections to the staging database."""
+        self.staging_db_connect.close()
+
+    def close_main_db_connection(self) -> psycopg2:
+        """Close active connections to the main database."""
+        self.main_db_connect.close()
