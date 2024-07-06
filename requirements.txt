@@ -1,10 +1,10 @@
-bs4
-colorlog
-connexion[swagger-ui]
-pandas
+bs4==0.0.2
+colorlog==6.8.2
+connexion[swagger-ui]==3.1.0
+pandas==2.2.2
 psycopg2-binary==2.9.1
-PySpark
-PyYaml
-selenium
-tdqm
-unidecode
+# PySpark
+PyYaml==6.0.1
+selenium==4.22.0
+tqdm==4.66.4
+unidecode==1.3.8
