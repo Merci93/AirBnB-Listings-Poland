@@ -5,7 +5,7 @@ x-airflow-common:
   environment:
     &airflow-common-env
     AIRFLOW_EXECUTOR: LocalExecutor
-    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://postgres:postgres@postgres/airflow_db
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://postgres:postgres@postgres/airbnb
     AIRFLOW__CORE__LOAD_EXAMPLES: "false"
     AIRFLOW__API__AUTH_BACKENDS: "airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session"
   volumes:
@@ -77,17 +77,17 @@ services:
     networks:
       - airbnb
 
-  # pgadmin:
-  #   image: dpage/pgadmin4:8
-  #   container_name: pg-admin
-  #   environment:
-  #     PGADMIN_DEFAULT_EMAIL: user123@gmail.com
-  #     PGADMIN_DEFAULT_PASSWORD: postgres
-  #   ports:
-  #     - 5050:80
-  #   restart: always
-  #   networks:
-  #     - airbnb
+  pgadmin:
+    image: dpage/pgadmin4:8
+    container_name: pg-admin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: user123@gmail.com
+      PGADMIN_DEFAULT_PASSWORD: postgres
+    ports:
+      - 5050:80
+    restart: always
+    networks:
+      - airbnb
 
 volumes:
   postgres-data:
