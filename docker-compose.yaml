@@ -92,8 +92,6 @@ services:
 volumes:
   postgres-data:
     driver: local
-  mongo-data:
-    driver: local
 
 networks:
   airbnb:
