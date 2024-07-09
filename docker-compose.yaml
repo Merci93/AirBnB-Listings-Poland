@@ -77,45 +77,17 @@ services:
     networks:
       - airbnb
 
-  pgadmin:
-    image: dpage/pgadmin4:8
-    container_name: pg-admin
-    environment:
-      PGADMIN_DEFAULT_EMAIL: user123@gmail.com
-      PGADMIN_DEFAULT_PASSWORD: postgres
-    ports:
-      - 5050:80
-    restart: always
-    networks:
-      - airbnb
-
-  mongo:
-    image: mongo
-    container_name: mongo
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: user123
-      MONGO_INITDB_ROOT_PASSWORD: password
-    ports:
-      - 27017:27017
-    restart: always
-    networks:
-      - airbnb
-    volumes:
-      - mongo-data:/data/db
-
-  mongo-express:
-    image: mongo-express
-    container_name: mongo-express
-    environment:
-      ME_CONFIG_MONGODB_ADMINUSERNAME: user123
-      ME_CONFIG_MONGODB_ADMINPASSWORD: password
-      ME_CONFIG_MONGODB_URL: mongodb://user123:password@mongo:27017/
-      ME_CONFIG_MONGODB_SERVER: mongo
-    ports:
-      - 8081:8081
-    restart: always
-    networks:
-      - airbnb
+  # pgadmin:
+  #   image: dpage/pgadmin4:8
+  #   container_name: pg-admin
+  #   environment:
+  #     PGADMIN_DEFAULT_EMAIL: user123@gmail.com
+  #     PGADMIN_DEFAULT_PASSWORD: postgres
+  #   ports:
+  #     - 5050:80
+  #   restart: always
+  #   networks:
+  #     - airbnb
 
 volumes:
   postgres-data:
