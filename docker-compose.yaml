@@ -5,7 +5,7 @@ x-airflow-common:
   environment:
     &airflow-common-env
     AIRFLOW_EXECUTOR: LocalExecutor
-    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://postgres:postgres@postgres/airflow_db
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://postgres:postgres@postgres/airbnb
     AIRFLOW__CORE__LOAD_EXAMPLES: "false"
     AIRFLOW__API__AUTH_BACKENDS: "airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session"
   volumes:
@@ -89,38 +89,8 @@ services:
     networks:
       - airbnb
 
-  mongo:
-    image: mongo
-    container_name: mongo
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: user123
-      MONGO_INITDB_ROOT_PASSWORD: password
-    ports:
-      - 27017:27017
-    restart: always
-    networks:
-      - airbnb
-    volumes:
-      - mongo-data:/data/db
-
-  mongo-express:
-    image: mongo-express
-    container_name: mongo-express
-    environment:
-      ME_CONFIG_MONGODB_ADMINUSERNAME: user123
-      ME_CONFIG_MONGODB_ADMINPASSWORD: password
-      ME_CONFIG_MONGODB_URL: mongodb://user123:password@mongo:27017/
-      ME_CONFIG_MONGODB_SERVER: mongo
-    ports:
-      - 8081:8081
-    restart: always
-    networks:
-      - airbnb
-
 volumes:
   postgres-data:
-    driver: local
-  mongo-data:
     driver: local
 
 networks:
