@@ -1,4 +1,4 @@
-FROM apache/airflow:slim-latest
+FROM apache/airflow:slim-latest-python3.9
 USER root
 RUN apt-get update && \
     apt-get install -y gnupg wget curl unzip --no-install-recommends g++ gcc libpq-dev && \ 
