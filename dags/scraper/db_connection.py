@@ -1,7 +1,7 @@
 """Module to create a connection to the PostgreSQL database."""
 import psycopg2
 
-from src import config
+from scraper import config
 
 config.init_settings()
 
