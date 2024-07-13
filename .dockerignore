@@ -1,6 +1,7 @@
-docker-setup.bat
+setup.bat
 .gitignore
 README.md
 img/
 env/
 __pycache__/
+.vscode/
