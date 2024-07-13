@@ -14,6 +14,8 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
+from scraper.log_handler import logger
+
 
 class ExtractHtml:
     """A class to scrape data from given url."""
@@ -42,13 +44,15 @@ class ExtractHtml:
 
         :return: A list containing city names.
         """
+        logger.info("Reading city files")
         cities = pd.read_csv(file_path)
         city_list = [city['Cities'] for _, city in cities.iterrows()]
+        logger.info("City file read successfully.")
         return city_list
 
     def extract_html(self) -> list:
         """
-        Extract html data from URL using city names.
+        Extract HTML data from URL using city names.
 
         :return: list containing HTML object for each city from the URL.
         """
@@ -58,6 +62,8 @@ class ExtractHtml:
 
             :param city: city name
             """
+            logger.info(f"Extracting HTML data for city {city} ...")
+
             try:
                 WebDriverWait(self.driver, 10).until(
                     EC.visibility_of_element_located(
@@ -115,9 +121,12 @@ class ExtractHtml:
                         next_page.click()
                     except TimeoutException:
                         break
+
+            logger.info(f"HTML data extraction for {city} completed.")
             return html_list
 
         cities = self.read_file("./cities/cities.csv")
         html_list = [city_data(f"{city}, Poland") for city in cities]
         self.driver.close()
+        logger.info("HTML data extraction completed, and driver closed.")
         return html_list
