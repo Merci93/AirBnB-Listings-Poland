@@ -3,8 +3,9 @@
 from datetime import date
 from typing import Any, Union
 
-from tqdm import tqdm
 from unidecode import unidecode
+
+from scraper.log_handler import logger
 
 
 class ExtractData:
@@ -17,13 +18,18 @@ class ExtractData:
 
         :param html_data: HTML data in a list.
         """
+        logger.info("Starting data extraction from html...")
+
         listing_data = []
 
         html_list = [(item[0], item[1]) for sublist in html_data for item in sublist]
-        for city_html in tqdm(html_list):
+
+        for city_html in html_list:
             listings = city_html[1].find_all("div", {"class": "c4mnd7m"})
+            city = city_html[0]
+            logger.info(f"Transforming data for {city} ...")
+
             for list_detail in listings:
-                city = city_html[0]
                 try:
                     title = unidecode(list_detail.find("div", {"data-testid": "listing-card-title"}).text)
                 except AttributeError:
@@ -77,4 +83,8 @@ class ExtractData:
                                      "star": stars,
                                      "number_of_ratings": no_of_ratings,
                                      })
+
+            logger.info(f"Data extraction for {city} completed.")
+        logger.info("All extractions completed successfully.")
+
         return listing_data

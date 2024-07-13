@@ -3,7 +3,7 @@ from typing import Union
 
 import pandas as pd
 
-from src.db_connection import Connection
+from scraper.db_connection import Connection
 
 
 class StageData:
