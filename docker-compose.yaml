@@ -25,8 +25,8 @@ services:
       <<: *airflow-common-env
       _AIRFLOW_DB_MIGRATE: "true"
       _AIRFLOW_WWW_USER_CREATE: "true"
-      _AIRFLOW_WWW_USER_USERNAME: airflow
-      _AIRFLOW_WWW_USER_PASSWORD: airflow
+      _AIRFLOW_WWW_USER_USERNAME: airbnb
+      _AIRFLOW_WWW_USER_PASSWORD: airbnb
       _AIRFLOW_WWW_USER_EMAIL: user123@gmail.com
       _AIRFLOW_WWW_USER_ROLE: Admin
     volumes:
