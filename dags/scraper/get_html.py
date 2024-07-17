@@ -20,12 +20,15 @@ from scraper.log_handler import logger
 class ExtractHtml:
     """A class to scrape data from given url."""
 
-    def __init__(self, url: str = None) -> None:
+    def __init__(self, url: str, city_file_path: str) -> None:
         """
         Initialize headless browser.
 
         :param url: webpage url.
+        :param city_file_path: path to csv file containing city names.
         """
+        self.city_file_path = city_file_path
+
         options = Options()
         options.add_argument('--log-level=3')
         options.add_argument("--headless")
@@ -38,14 +41,14 @@ class ExtractHtml:
         except (NoSuchElementException, TimeoutException):
             pass
 
-    def read_file(self, file_path: str) -> list:
+    def read_file(self) -> list:
         """
         Reads in the csv file containing city names.
 
         :return: A list containing city names.
         """
         logger.info("Reading city files")
-        cities = pd.read_csv(file_path)
+        cities = pd.read_csv(self.city_file_path)
         city_list = [city['Cities'] for _, city in cities.iterrows()]
         logger.info("City file read successfully.")
         return city_list
@@ -125,8 +128,7 @@ class ExtractHtml:
             logger.info(f"HTML data extraction for {city} completed.")
             return html_list
 
-        cities = self.read_file("./cities/cities.csv")
-        html_list = [city_data(f"{city}, Poland") for city in cities]
+        html_list = [city_data(f"{city}, Poland") for city in self.read_file()]
         self.driver.close()
         logger.info("HTML data extraction completed, and driver closed.")
         return html_list
