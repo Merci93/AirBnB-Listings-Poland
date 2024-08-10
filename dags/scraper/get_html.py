@@ -1,4 +1,5 @@
 """Scrapes select data from the given URL, specifically written to extract data from AirBnB webpage."""
+from typing import Any, Dict, List
 
 import pandas as pd
 from bs4 import BeautifulSoup
@@ -20,14 +21,14 @@ from scraper.log_handler import logger
 class ExtractHtml:
     """A class to scrape data from given url."""
 
-    def __init__(self, url: str, city_file_path: str) -> None:
+    def __init__(self, url: str) -> None:
         """
         Initialize headless browser.
 
         :param url: webpage url.
         :param city_file_path: path to csv file containing city names.
         """
-        self.city_file_path = city_file_path
+        # self.city_file_path = city_file_path
 
         options = Options()
         options.add_argument('--log-level=3')
@@ -41,25 +42,25 @@ class ExtractHtml:
         except (NoSuchElementException, TimeoutException):
             pass
 
-    def read_file(self) -> list:
-        """
-        Reads in the csv file containing city names.
+    # def read_file(self) -> list:
+    #     """
+    #     Reads in the csv file containing city names.
 
-        :return: A list containing city names.
-        """
-        logger.info("Reading city files")
-        cities = pd.read_csv(self.city_file_path)
-        city_list = [city['Cities'] for _, city in cities.iterrows()]
-        logger.info("City file read successfully.")
-        return city_list
+    #     :return: A list containing city names.
+    #     """
+    #     logger.info("Reading city files")
+    #     cities = pd.read_csv(self.city_file_path)
+    #     city_list = [city['Cities'] for _, city in cities.iterrows()]
+    #     logger.info("City file read successfully.")
+    #     return city_list
 
-    def extract_html(self) -> list:
+    def extract_html(self, cities: List[str]) -> List[Dict[str, Any]]:
         """
         Extract HTML data from URL using city names.
 
         :return: list containing HTML object for each city from the URL.
         """
-        def city_data(city: str) -> list:
+        def city_data(city: str) -> List[str]:
             """
             A helper function to extract html data using the city name.
 
@@ -128,7 +129,7 @@ class ExtractHtml:
             logger.info(f"HTML data extraction for {city} completed.")
             return html_list
 
-        html_list = [city_data(f"{city}, Poland") for city in self.read_file()]
+        html_list = [city_data(f"{city}, Poland") for city in cities]
         self.driver.close()
         logger.info("HTML data extraction completed, and driver closed.")
         return html_list

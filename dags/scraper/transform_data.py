@@ -1,5 +1,4 @@
 """Module to extract data from html and transform into a pandas dataframe."""
-
 from datetime import date
 from typing import Any, Union
 
@@ -8,7 +7,7 @@ from unidecode import unidecode
 from scraper.log_handler import logger
 
 
-class ExtractData:
+class ExtractListingData:
     """Perform data extraction and transformation form HTML data."""
 
     @staticmethod
