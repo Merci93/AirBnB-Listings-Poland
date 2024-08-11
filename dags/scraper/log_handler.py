@@ -40,7 +40,7 @@ def config_logging(log_directory=None, level=logging.INFO):
                                  datefmt="%Y-%m-%d %H:%M:%S",
                                  reset=True,
                                  log_colors={"DEBUG": "cyan",
-                                             "INFO": "blue",
+                                             "INFO": "white",
                                              "WARNING": "yellow",
                                              "ERROR": "red",
                                              "CRITICAL": "red, bg_white"},
