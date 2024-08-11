@@ -14,8 +14,8 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
-from dags.scraper.log_handler import logger
-from dags.scraper.selenium_driver import init_driver
+from scraper.log_handler import logger
+from scraper.selenium_driver import init_driver
 
 
 class ExtractHtml:
