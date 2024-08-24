@@ -2,13 +2,14 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
+from log_handler import logger
 
-def init_driver(run_headless: bool = True) -> webdriver.Chrome:
+
+def init_driver() -> webdriver.Chrome:
     """Instantiate a headless web driver."""
-
+    logger.info("Initializing browser in headless mode ...")
     options = Options()
-    if run_headless:
-        options.add_argument("--headless")
+    options.add_argument("--headless")
     options.add_argument("disable-infobars")
     options.add_argument("--disable-logging")
     options.add_argument("--lang=en-US")
@@ -21,4 +22,5 @@ def init_driver(run_headless: bool = True) -> webdriver.Chrome:
                                     }
                                     )
     driver = webdriver.Chrome(options=options)
+    logger.info("Driver successfully initialized.")
     return driver
