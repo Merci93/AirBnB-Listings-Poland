@@ -94,6 +94,7 @@ class ExtractURL:
         :param url: Webpage url.
         :return: Dictionary containing key-value pairs of city names and a list of listing URLS in the city.
         """
+        logger.info("<<<<<<<<<<<<<<<<< Extracting Listing URLs ... >>>>>>>>>>>>>>>>>>>>>>>>")
         driver.get(url)
 
         try:
@@ -106,5 +107,5 @@ class ExtractURL:
             city_listing_urls.update(ExtractURL.city_url(driver=driver, city=f"{city}, Poland"))
 
         driver.close()
-        logger.info("Listing URLs extraction completed, and driver closed.")
+        logger.info("<<<<<<<<<<<<<<<< Listing URLs extraction completed. >>>>>>>>>>>>>>>>>>>>>>>>>>")
         return city_listing_urls
