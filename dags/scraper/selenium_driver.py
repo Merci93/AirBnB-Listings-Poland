@@ -2,7 +2,7 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
-from log_handler import logger
+from scraper.log_handler import logger
 
 
 def init_driver() -> webdriver.Chrome:
