@@ -18,32 +18,32 @@ A data engineering project using [AirBnB](https://www.airbnb.com) listings in se
 
 ## Objectives
 This project is aimed at building an ETL pipeline that includes the following:
-1. Data collection - webscraping data from airbnb listing page.
-2. Cleaning and transformation - extracting useful data from the html, and transforming into a Pandas dataframe.
-3. Loading into PostgreSQL database.
-4. Orchestrating with airflow.
-5. Containerization using docker.
+1. Data collection - webscraping data from airbnb webpage page, specifically for listings in Poland.
+2. Cleaning and transformation - extracting useful data from the html, and transforming into a Spark dataframe.
+3. Loading into PostgreSQL database via robust FastAPI endpoints.
+4. Orchestrating with Apache Airflow.
+5. Containerization using Docker.
 
 
 ## Approach
-1. Build a webcrawler to extract data from AirBnB webpage.
-2. Perform transformations on extracted data and load into PostgreSQL database. In situations where extraction fails at the first attempt, it is retried multiple times.
-3. Orchestrating process using airflow and containerizing using Docker.
-4. Perform exploratory and explanatory analysis to understand price differences between house listings in these cities and also explore the price trend.
+1. Build a webcrawler to extract data from AirBnB webpage using Selenium and BeautifulSoup to collect data for select cities in Poland.
+2. Perform transformations on extracted data and load into PostgreSQL database.
+3. Orchestrating process using Apache Airflow and containerizing using Docker.
+4. Perform exploratory and explanatory analysis to understand price differences between house listings in these cities and also explore the price trend, listing details, ammenities, etc.
 
 The project is divided into the following stages:
-1. **Data Extraction:** Developed a web scrapping script (using selenium and beaustifulsoup frameworks) to perform the ETL process involving data extraction from the and performing necessary transformations. The output data is loaded into PostgreSQL staging database, and in situations where the transformation fails, the extracted html data is saved as txt file in MongoDb, and the transformation is retried.
-2. **Data Cleaning:** Since the first step is focused on data extractions, data cleaning and feature engineering was performed using PySpark.
-3. **Exploratory Analysis:** The data was visualized to understand and derive insights from hidden patterns and trends in the data from different cities and in different months.
+1. **Data Extraction:** Developed a web scrapping script (using Selenium and Beaustifulsoup frameworks) to perform the ETL process involving data extraction from the and performing necessary transformations. The output data is loaded into PostgreSQL staging database.
+2. **Data Cleaning:** Since the first step is focused on data extractions, data cleaning and feature engineering will be performed.
+3. **Exploratory Analysis:** The data will be visualized to understand and derive insights from hidden patterns and trends in the data from different cities and in different months.
 4. **Power BI Visualization:** Using the cleaned data, a dashboard will be created to show the patterns uncovered using appropriate visuals. This visualization will enable travellers and tourists make better financial planning based on the season they are visiting Poland and the city they intend to visit, as they will already have an insight to the average cost of an apartment per night.
 
-The project is containerized using docker, the scrapping orchestration carried out using Apache Airflow. All applications: Airflow and PostgreSQL are containerized using Docker.
+The project is containerized using Docker, the scrapping orchestration carried out using Apache Airflow. All applications: Airflow and PostgreSQL are containerized using Docker, and interaction with the PostgreSQL database powered by a robust FastAPI backend.
 
 
 ## Data
-The following data were collected from the listings available for each city: 
-- Apartment name
-- Subtitle
+The following data were collected from the listings available for each city:
+- Apartment Id
+- Apartment name/title
 - Location/City
 - Number of beds
 - Price per night
@@ -53,9 +53,8 @@ The following data were collected from the listings available for each city:
 - Bath
 - check in date
 - check out date
-- cleaning fee
-- Total rental price for the rental period
-- Rating (star)
+- Ammenities - (as presence of bathtub, kitchen, iron, oven, electric kettle, heating, etc)
+- Star
 - Number of ratings
 - Review ratings (Cleanliness, Accuracy, Check in, Communication, Location, Value)
 - Top 3 reviews
@@ -81,15 +80,15 @@ The ERD (Entity Relationship Diagram) was created using the diagramming tool [Lu
 2. Run the `docker_setup.bat` in the command line interface. This file is specifically for Windows OS. This will pull all needed images (Airflow, PostgreSQL, MongoDB) and start the containers.
 3. The containers are accessible as follows:
     - Airflow: >>> To be added
-    - PostgreSQL PgAdmin: >>> To be added
-    - Mongo-expres: >>> To be added default user: admin, default password: pass
+    - PostgreSQL: >>> To be added
+    - API Endpoints >>> To be added
 4. To stop/close the application, run `docker-compose down --volumes --rmi all`. This will close all containers, pull down all the volumes that has been setup and also removed all pulled docker images.
 
 
 ## Airflow
 >>> To be added
 
-## PostgreSQL
+## API Endpoints
 >>> To be added
 
 ## Questions
