@@ -122,5 +122,5 @@ class ExtractURL:
                 except Exception as e:
                     logger.error(f"Error occurred while fetching data for city {city}: {e}")
 
-        logger.info("<<<<<<<<<<<<<<<< Listing URLs extraction completed. >>>>>>>>>>>>>>>>>>>>>>>>>>")
+        logger.info("<<<<<<<<<<<<<<<<< Listing URLs extraction completed. >>>>>>>>>>>>>>>>>>>>>>>>>>")
         return city_listing_urls
