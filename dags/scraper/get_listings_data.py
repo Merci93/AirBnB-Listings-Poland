@@ -126,6 +126,12 @@ class ExtractListingData:
         tv = next(("Yes" for item in ammenities if "tv" in item), "No")
         hot_kettle = next(("Yes" for item in ammenities if "kettle" in item), "No")
 
+        users_review = [
+            item.find("span", {"class": "lrl13de"}).text
+            for item in listing_html.find("div", {"class": "_88xxct"}).find_all("div", {"class": "_b7zir4z"})
+        ]
+        review_1, review_2, review_3 = (users_review + [None] * 3)[:3]
+
         listing_data.append(
             {
                 "listing_id": int(listing_id),
@@ -174,7 +180,10 @@ class ExtractListingData:
                 "dish_washer": dish_washer,
                 "patio_or_balcony": patio_and_balcony,
                 "television": tv,
-                "hot_water_kettle": hot_kettle
+                "hot_water_kettle": hot_kettle,
+                "review_1": review_1,
+                "review_2": review_2,
+                "review_3": review_3
             }
         )
 
