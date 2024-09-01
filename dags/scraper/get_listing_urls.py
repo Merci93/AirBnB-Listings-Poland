@@ -2,6 +2,7 @@
 import random
 import time
 from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Dict, List
 
 from bs4 import BeautifulSoup
@@ -17,6 +18,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 from scraper.log_handler import logger
+from scraper.selenium_driver import init_driver
 
 
 class ExtractURL:
@@ -64,15 +66,15 @@ class ExtractURL:
         city_urls = defaultdict(list)
 
         while True:
-            time.sleep(random.uniform(2, 3))
+            time.sleep(random.uniform(1, 2))
             try:
                 WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, "div.t1jojoys")))
             except TimeoutException:
                 pass
 
             html_body = BeautifulSoup(driver.page_source, "html.parser")
-            list_table = html_body.find_all("div", {"class": "c4mnd7m"})
-            listing_urls = [f'https://www.airbnb.com/{item.find("a").get("href")}' for item in list_table]
+            list_table = html_body.find_all("div", {"class": "cy5jw6o"})
+            listing_urls = [f'https://www.airbnb.com/{item.find("a").get("href")}' for item in list_table if item.find("a")]
             city_urls[city].extend(listing_urls)
 
             try:
@@ -86,7 +88,7 @@ class ExtractURL:
         return {city: city_urls[city]}
 
     @staticmethod
-    def extract_url(driver: webdriver, url: str, cities: List[str]) -> Dict[str, List[str]]:
+    def extract_url(url: str, cities: List[str]) -> Dict[str, List[str]]:
         """
         Extract listing URLs.
 
@@ -95,17 +97,30 @@ class ExtractURL:
         :return: Dictionary containing key-value pairs of city names and a list of listing URLS in the city.
         """
         logger.info("<<<<<<<<<<<<<<<<< Extracting Listing URLs ... >>>>>>>>>>>>>>>>>>>>>>>>")
-        driver.get(url)
 
-        try:
-            WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, '_1swasop'))).click()
-        except (NoSuchElementException, TimeoutException):
-            pass
+        def fetch_city_url(city: str) -> Dict[str, List[str]]:
+            driver = init_driver()
+            driver.get(url)
+            try:
+                WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, '_1swasop'))).click()
+            except (NoSuchElementException, TimeoutException):
+                pass
+            result = ExtractURL.city_url(driver=driver, city=f"{city}, Poland")
+            driver.quit()
+            return result
 
         city_listing_urls = {}
-        for city in cities:
-            city_listing_urls.update(ExtractURL.city_url(driver=driver, city=f"{city}, Poland"))
 
-        driver.close()
-        logger.info("<<<<<<<<<<<<<<<< Listing URLs extraction completed. >>>>>>>>>>>>>>>>>>>>>>>>>>")
+        with ThreadPoolExecutor(max_workers=8) as executor:
+            future_to_city = {executor.submit(fetch_city_url, city): city for city in cities}
+
+            for future in as_completed(future_to_city):
+                city = future_to_city[future]
+                try:
+                    result = future.result()
+                    city_listing_urls.update(result)
+                except Exception as e:
+                    logger.error(f"Error occurred while fetching data for city {city}: {e}")
+
+        logger.info("<<<<<<<<<<<<<<<<< Listing URLs extraction completed. >>>>>>>>>>>>>>>>>>>>>>>>>>")
         return city_listing_urls

@@ -1,35 +1,38 @@
 """Scrapes select data from the given URL, specifically written to extract data from AirBnB webpage."""
-import concurrent.futures
 import random
 import re
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from typing import Any, Dict, List
 
 from bs4 import BeautifulSoup
-from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from unidecode import unidecode
 
+from scraper.log_handler import logger
+from scraper.selenium_driver import init_driver
+
 
 class ExtractListingData:
-    """Perform data extraction and transformation form HTML data."""
+    """
+    A class to get listing HTML data from the listing URL, and extract required listing data and return
+    a dictionary of extracted informations.
+    """
 
     @staticmethod
-    def extract_and_transform_data(driver: webdriver, city: str, listing_url: str) -> List[Dict[str, Any]]:
+    def extract_and_transform_data(city: str, listing_url: str) -> List[Dict[str, Any]]:
         """
         Extract listing data from the listing url, and return list of dictionaries with extracted data.
 
-        :param driver: Selenium headless webdriver.
         :param city: City name.
         :param listing_url: Listing URL string.
         """
+        driver = init_driver()
         wait = WebDriverWait(driver, 10)
-
-        listing_data = []
 
         driver.get(listing_url)
         try:
@@ -71,12 +74,20 @@ class ExtractListingData:
             except Exception:
                 no_of_reviews = "N/A"
 
-        check_in_date = datetime.strptime(
-            listing_html.find("div", {"class": "_19y8o0j"}).text.split("in")[1].strip(), "%m/%d/%Y"
-        )
-        check_out_date = datetime.strptime(
-            listing_html.find("div", {"class": "_48vms8s"}).text.split("out")[1].strip(), "%m/%d/%Y"
-        )
+        try:
+            check_in_date = datetime.strptime(
+                listing_html.find("div", {"class": "_19y8o0j"}).find("div", {"class": "_tekaj0"}).text.strip(), "%m/%d/%Y"
+            ).date()
+        except Exception:
+            check_in_date = "Missed"
+
+        try:
+            check_out_date = datetime.strptime(
+                listing_html.find("div", {"class": "_48vms8s"}).find("div", {"class": "_tekaj0"}).text.strip(), "%m/%d/%Y"
+            ).date()
+        except Exception:
+            check_out_date = "Missed"
+
         overall_rating = [item.text for item in listing_html.find_all("div", {"class": "c18arpj7"})]
         cleanliness = next((float(re.search(r"\d.{2}", item).group()) for item in overall_rating if "cleanliness" in item), "N/A")
         accuracy = next((float(re.search(r"\d.{2}", item).group()) for item in overall_rating if "accuracy" in item), "N/A")
@@ -84,10 +95,13 @@ class ExtractListingData:
         comm = next((float(re.search(r"\d.{2}", item).group()) for item in overall_rating if "communication" in item), "N/A")
         location = next((float(re.search(r"\d.{2}", item).group()) for item in overall_rating if "location" in item), "N/A")
         value = next((float(re.search(r"\d.{2}", item).group()) for item in overall_rating if "value" in item), "N/A")
-        host_response_rate = re.search(r'\b\d{1,3}%\b', listing_html.find("div", {"class": "h1geptgj"}).text).group()
+        try:
+            host_response_rate = re.search(r'\b\d{1,3}%\b', listing_html.find("div", {"class": "h1geptgj"}).text).group()
+        except Exception:
+            host_response_rate = "N/A"
 
         click_action = ActionChains(driver)
-        xpath = "//button[starts-with(text(), 'Show all') and contains(text(), 'amenities')]"
+        xpath = "//button[starts-with(text(), 'Show all') and (contains(text(), 'amenities') or contains(text(), 'amenity details'))]"
         show_ammenities = wait.until(EC.element_to_be_clickable((By.XPATH, xpath)))
         click_action.move_to_element(show_ammenities).click().perform()
         time.sleep(random.uniform(2, 3))
@@ -126,56 +140,91 @@ class ExtractListingData:
         tv = next(("Yes" for item in ammenities if "tv" in item), "No")
         hot_kettle = next(("Yes" for item in ammenities if "kettle" in item), "No")
 
-        listing_data.append(
-            {
-                "listing_id": int(listing_id),
-                "city": city,
-                "title": listing_title,
-                "guests": guests,
-                "bathrooms": bathroom,
-                "bedrooms": bedroom,
-                "apartment_type": apartment_type,
-                "price_per_night": price_per_night,
-                "check_in_date": check_in_date,
-                "check_out_date": check_out_date,
-                "star": stars,
-                "number_of_reviews": no_of_reviews,
-                "cleanliness": cleanliness,
-                "accuracy": accuracy,
-                "check_in": check_in,
-                "communication": comm,
-                "location": location,
-                "value": value,
-                "host_response_rate": host_response_rate,
-                "bathtub": bathtub,
-                "hot_water": hot_water,
-                "hangers": hangers,
-                "bed_linens": bed_linens,
-                "iron": iron,
-                "kitchen": kitchen,
-                "wifi": wifi,
-                "elevator": elevator,
-                "washer": washer,
-                "parking": parking,
-                "workspace": workspace,
-                "pets_allowed": pets_allowed,
-                "hair_dryer": hair_dryer,
-                "heating": heating,
-                "refrigerator": refrigerator,
-                "stove": stove,
-                "oven": oven,
-                "coffee_maker": coffee_maker,
-                "dining_table": dining_table,
-                "self_check_in": self_check_in,
-                "lockbox": lockbox,
-                "cooking_pots": cooking_pots,
-                "smoke_alarm": smoke_alarm,
-                "carbon_monoxide_alarm": co2_alarm,
-                "dish_washer": dish_washer,
-                "patio_or_balcony": patio_and_balcony,
-                "television": tv,
-                "hot_water_kettle": hot_kettle
-            }
-        )
+        users_review = [
+            item.find("span", {"class": "lrl13de"}).text
+            for item in listing_html.find("div", {"class": "_88xxct"}).find_all("div", {"class": "_b7zir4z"})
+        ]
+        review_1, review_2, review_3 = (users_review + [None] * 3)[:3]
 
+        listing_data = {
+            "city": city,
+            "listing_id": int(listing_id),
+            "title": listing_title,
+            "guests": guests,
+            "bathrooms": bathroom,
+            "bedrooms": bedroom,
+            "apartment_type": apartment_type,
+            "price_per_night": price_per_night,
+            "check_in_date": check_in_date,
+            "check_out_date": check_out_date,
+            "star": stars,
+            "number_of_reviews": no_of_reviews,
+            "cleanliness": cleanliness,
+            "accuracy": accuracy,
+            "check_in": check_in,
+            "communication": comm,
+            "location": location,
+            "value": value,
+            "host_response_rate": host_response_rate,
+            "bathtub": bathtub,
+            "hot_water": hot_water,
+            "hangers": hangers,
+            "bed_linens": bed_linens,
+            "iron": iron,
+            "kitchen": kitchen,
+            "wifi": wifi,
+            "elevator": elevator,
+            "washer": washer,
+            "parking": parking,
+            "workspace": workspace,
+            "pets_allowed": pets_allowed,
+            "hair_dryer": hair_dryer,
+            "heating": heating,
+            "refrigerator": refrigerator,
+            "stove": stove,
+            "oven": oven,
+            "coffee_maker": coffee_maker,
+            "dining_table": dining_table,
+            "self_check_in": self_check_in,
+            "lockbox": lockbox,
+            "cooking_pots": cooking_pots,
+            "smoke_alarm": smoke_alarm,
+            "carbon_monoxide_alarm": co2_alarm,
+            "dish_washer": dish_washer,
+            "patio_or_balcony": patio_and_balcony,
+            "television": tv,
+            "hot_water_kettle": hot_kettle,
+            "review_1": review_1,
+            "review_2": review_2,
+            "review_3": review_3
+        }
+
+        driver.quit()
+        return listing_data
+
+    def extract_data_from_url(listiing_urls: Dict[str, List[str]]) -> List[Dict[str, Any]]:
+        """
+        A function to extract listing data from Airbnb listing URLs.
+
+        :param listiing_urls: Dictionary with key-value pairs of city name and list of listing URLs.
+        :return: A list of dictionary containing extracted data.
+        """
+        listing_data = []
+
+        logger.info("<<<<<<<<<<<<<<<<< Extracting Listing data ... >>>>>>>>>>>>>>>>>>>>>>>>")
+        with ThreadPoolExecutor(max_workers=5) as executor:
+            future_to_data = {
+                executor.submit(ExtractListingData.extract_and_transform_data, city, url):
+                    (city, url) for city, urls in listiing_urls.items() for url in urls[:5]
+            }
+
+            for future in as_completed(future_to_data):
+                city, url = future_to_data[future]
+                try:
+                    result = future.result()
+                    listing_data.append(result)
+                except Exception as e:
+                    logger.error(f"An error occurred while fetching data for {city}: {e}")
+                    logger.error(f"Failed URL: {url}")
+        logger.info("<<<<<<<<<<<<<<<<< Listing data extraction completed. >>>>>>>>>>>>>>>>>>>>>>>>>>")
         return listing_data
