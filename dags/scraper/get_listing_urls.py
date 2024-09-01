@@ -17,8 +17,11 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
-from scraper.log_handler import logger
-from scraper.selenium_driver import init_driver
+# from scraper.log_handler import logger
+# from scraper.selenium_driver import init_driver
+
+from log_handler import logger
+from selenium_driver import init_driver
 
 
 class ExtractURL:
@@ -111,7 +114,7 @@ class ExtractURL:
 
         city_listing_urls = {}
 
-        with ThreadPoolExecutor(max_workers=14) as executor:
+        with ThreadPoolExecutor(max_workers=8) as executor:
             future_to_city = {executor.submit(fetch_city_url, city): city for city in cities}
 
             for future in as_completed(future_to_city):
