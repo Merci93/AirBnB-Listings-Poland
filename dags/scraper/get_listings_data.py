@@ -77,14 +77,14 @@ class ExtractListingData:
         try:
             check_in_date = datetime.strptime(
                 listing_html.find("div", {"class": "_19y8o0j"}).find("div", {"class": "_tekaj0"}).text.strip(), "%m/%d/%Y"
-            )
+            ).date()
         except Exception:
             check_in_date = "Missed"
 
         try:
             check_out_date = datetime.strptime(
                 listing_html.find("div", {"class": "_48vms8s"}).find("div", {"class": "_tekaj0"}).text.strip(), "%m/%d/%Y"
-            )
+            ).date()
         except Exception:
             check_out_date = "Missed"
 
@@ -211,6 +211,7 @@ class ExtractListingData:
         """
         listing_data = []
 
+        logger.info("<<<<<<<<<<<<<<<<< Extracting Listing data ... >>>>>>>>>>>>>>>>>>>>>>>>")
         with ThreadPoolExecutor(max_workers=5) as executor:
             future_to_data = {
                 executor.submit(ExtractListingData.extract_and_transform_data, city, url):
@@ -225,4 +226,5 @@ class ExtractListingData:
                 except Exception as e:
                     logger.error(f"An error occurred while fetching data for {city}: {e}")
                     logger.error(f"Failed URL: {url}")
+        logger.info("<<<<<<<<<<<<<<<<< Listing data extraction completed. >>>>>>>>>>>>>>>>>>>>>>>>>>")
         return listing_data
