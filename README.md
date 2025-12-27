@@ -38,6 +38,9 @@ The project focuses on building a robust and scalable ETL pipeline that includes
 5. **Containerization**: All components (Airflow, PostgreSQL, FastAPI) are containerized using Docker for portability and reproducibility.
 6. **Analysis & Visualization**: Exploratory and explanatory analysis is performed to uncover pricing trends, listing characteristics, amenities distribution, and seasonal variations. Results are visualized using Power BI dashboards.
 
+### Flow Diagram
+![](img/flow-diagram.png)
+
 
 ## Data
 The following attributes are extracted for each listing:
