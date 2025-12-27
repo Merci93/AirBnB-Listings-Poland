@@ -76,6 +76,30 @@ services:
     restart: always
     networks:
       - airbnb
+  
+  mongo:
+    image: skazuki/alpine-mongodb:${MONGODB_IMAGE_VERSION}
+    container_name: ${MONGODB_CONTAINER_NAME}
+    ports:
+      - "${MONGODB_PORT}:27017"
+    restart: always
+    networks:
+      - "${NETWORK_NAME}"
+  
+  mongo-express:
+    image: mongo-express:${MONGO_EXPRESS_IMAGE_VERSION}
+    container_name: ${MONGO_EXPRESS_CONTAINER_NAME}
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: "${MONGO_EXPRESS_ADMINUSERNAME}"
+      ME_CONFIG_MONGODB_ADMINPASSWORD: "${MONGO_EXPRESS_ADMINPASSWORD}"
+      ME_CONFIG_MONGODB_SERVER: "${MONGO_EXPRESS_SERVER}"
+    ports:
+      - "${MONGO_EXPRESS_PORT}:8081"
+    restart: always
+    networks:
+      - "${NETWORK_NAME}"
+    depends_on:
+      - mongo
 
 volumes:
   postgres-data:
