@@ -1,5 +1,8 @@
-# AirBnB Listings in Poland
-A data engineering project using [AirBnB](https://www.airbnb.com) listings in select cities Poland. The data used for this analysis was obtained from AirBnB webpage specifically for the following cities:
+# AirBnB Listings Data Engineering Project
+## Overview
+This project is an end-to-end data engineering solution built to collect, process, store, and analyze Airbnb listings across selected cities in Poland. The goal is to provide insights into pricing trends, listing characteristics, and seasonal patterns to support better travel and financial planning.
+
+## Cities Covered
 1. Warsaw
 2. Wrocław
 3. Katowice
@@ -17,31 +20,27 @@ A data engineering project using [AirBnB](https://www.airbnb.com) listings in se
 
 
 ## Objectives
-This project is aimed at building an ETL pipeline that includes the following:
-1. Data collection - webscraping data from airbnb webpage page, specifically for listings in Poland.
-2. Cleaning and transformation - extracting useful data from the html, and transforming into a Spark dataframe.
-3. Loading into PostgreSQL database via robust FastAPI endpoints.
-4. Orchestrating with Apache Airflow.
-5. Containerization using Docker.
+The project focuses on building a robust and scalable ETL pipeline that includes:
+1. Web scraping Airbnb listings for selected Polish cities
+2. Cleaning and transforming raw HTML data into structured Pandas dataframes
+3. Loading processed data into a PostgreSQL database via FastAPI endpoints
+4. Orchestrating workflows with Apache Airflow
+5. Containerizing all services using Docker
+6. Performing exploratory and explanatory data analysis
+7. Creating business-focused dashboards using Power BI
 
 
-## Approach
-1. Build a webcrawler to extract data from AirBnB webpage using Selenium and BeautifulSoup to collect data for select cities in Poland.
-2. Perform transformations on extracted data and load into PostgreSQL database.
-3. Orchestrating process using Apache Airflow and containerizing using Docker.
-4. Perform exploratory and explanatory analysis to understand price differences between house listings in these cities and also explore the price trend, listing details, ammenities, etc.
-
-The project is divided into the following stages:
-1. **Data Extraction:** Developed a web scrapping script (using Selenium and Beaustifulsoup frameworks) to perform the ETL process involving data extraction from the and performing necessary transformations. The output data is loaded into PostgreSQL staging database.
-2. **Data Cleaning:** Since the first step is focused on data extractions, data cleaning and feature engineering will be performed.
-3. **Exploratory Analysis:** The data will be visualized to understand and derive insights from hidden patterns and trends in the data from different cities and in different months.
-4. **Power BI Visualization:** Using the cleaned data, a dashboard will be created to show the patterns uncovered using appropriate visuals. This visualization will enable travellers and tourists make better financial planning based on the season they are visiting Poland and the city they intend to visit, as they will already have an insight to the average cost of an apartment per night.
-
-The project is containerized using Docker, the scrapping orchestration carried out using Apache Airflow. All applications: Airflow and PostgreSQL are containerized using Docker, and interaction with the PostgreSQL database powered by a robust FastAPI backend.
+## Architecture & Approach
+1. **Data Extraction**: A web crawler was developed using Selenium and BeautifulSoup to scrape Airbnb listing data for selected cities.
+2. **Data Transformation & Cleaning**: Extracted HTML data is parsed, cleaned, and transformed into structured formats using Pandas, including feature engineering and data validation.
+3. **Data Loading**: Cleaned data is loaded into a PostgreSQL database through a robust FastAPI backend to ensure secure and scalable ingestion.
+4. **Orchestration**: Apache Airflow is used to orchestrate the entire ETL workflow, ensuring reliable scheduling and monitoring.
+5. **Containerization**: All components (Airflow, PostgreSQL, FastAPI) are containerized using Docker for portability and reproducibility.
+6. **Analysis & Visualization**: Exploratory and explanatory analysis is performed to uncover pricing trends, listing characteristics, amenities distribution, and seasonal variations. Results are visualized using Power BI dashboards.
 
 
 ## Data
-The following data were collected from the listings available for each city:
+The following attributes are extracted for each listing:
 - Apartment Id
 - Apartment name/title
 - Location/City
@@ -61,17 +60,17 @@ The following data were collected from the listings available for each city:
 
 
 ## Data Modelling
-The data model for this project was performed using the **SNOWFLAKE SCHEMA*** in the 3rd normal form (3NF).The model contains one facts table and three dimension tables all linked directly to the facts table. The dimension tables have a **one to many** and/or **one to one** relationship with the facts table. The tables are as listed below:
-1. **City**: A dimension table containing the unique cities considered in this project.
-2. **Ratings**: contains the ratings per listing.
-3. **Rental_period**: contains the period (number of days) the listing will be available - check in and check out date.
-4. **Apartments**: A facts table containing the apartment title, subtitles and id's linked to the dimension tables.
-This table also contains the price of each listing. These prices includes price per nigh, original price and total
-price per listing.
-5. **Details**: further details relating to the listing: beds, bath, quests and bedroom.
-6. **Reviews**: Reviews for the listing, with an extende table, **country** which keeps unique reviewer's country.
+The data model for this project follows a Snowflake Schema design in Third Normal Form (3NF). It consists of one central fact table and multiple dimension tables, all directly linked to the fact table. The relationships between the fact and dimension tables are one-to-many and one-to-one, ensuring data integrity and efficient querying.
 
-The ERD (Entity Relationship Diagram) was created using the diagramming tool [LucidChart](https://lucid.app/).
+### Tables Overview
+1. **City**: A dimension table containing the unique cities.
+2. **Ratings**: Stores rating information associated with each listing..
+3. **Rental_period**: Contains availability details for listings, including check-in and check-out dates and rental duration.
+4. **Apartments**: The central fact table containing apartment IDs, titles, and references to related dimension tables. It also stores pricing details such as price per night, original price, and total price per listing.
+5. **Details**: Holds additional listing attributes, including number of beds, bathrooms, bedrooms, and guest capacity.
+6. **Reviews**: Stores reviews for each listing, with an extended Country table that maintains unique reviewer country information.
+
+### Entity Relationship Diagram (ERD).
 ![](img/Poland_AirBnB.png)
 
 
@@ -96,3 +95,12 @@ TODO
 
 ## Insights
 TODO
+
+## Tech Stack:
+- languages: Python, SQL, Bash
+- Web Scraping: Selenium, BeautifulSoup
+- Data Processing: Pandas
+- Orchestration: Apache Airflow
+- Databases: PostgreSQL, MongoDB
+- Containerization: Docker
+- Visualization: Power BI
