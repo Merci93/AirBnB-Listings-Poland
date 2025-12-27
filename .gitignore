@@ -1,5 +1,18 @@
-env/
+# Vscode files
 .vscode/
+
+# Environment
+.venv
+.env
+
+# Cache folders
 __pycache__/
+
+# Logs and Plugins
 logs
 plugins
+
+# Docs
+*.pdf
+*.drawio
+*.bkp
