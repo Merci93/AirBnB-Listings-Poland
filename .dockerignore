@@ -1,7 +1,21 @@
+# Manual Setup File
 setup.bat
+
+# Gitignore
 .gitignore
+
+# Others
 README.md
 img/
-env/
+uv.lock
+pyptoject.toml
+*.pdf
+
+# Env
+.venv
+
+# Cache
 __pycache__/
+
+# Vscode
 .vscode/
