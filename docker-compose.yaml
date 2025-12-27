@@ -1,17 +1,17 @@
 x-airflow-common:
   &airflow-common
-  image: apache/airflow:slim-latest
+  image: apache/airflow:${AIRFLOW_IMAGE_VERSION}
   environment:
     &airflow-common-env
-    AIRFLOW_EXECUTOR: LocalExecutor
-    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://postgres:postgres@postgres/airbnb
+    AIRFLOW_EXECUTOR: ${AIRFLOW_EXECUTOR}
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: ${AIRFLOW__DATABASE__SQL_ALCHEMY_CONN}
     AIRFLOW__CORE__LOAD_EXAMPLES: "false"
-    AIRFLOW__API__AUTH_BACKENDS: "airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session"
+    AIRFLOW__API__AUTH_BACKENDS: ${AIRFLOW__API__AUTH_BACKENDS}
   volumes:
-    - ./data:/opt/airflow/data
-    - ./dags:/opt/airflow/dags
-    - ./logs:/opt/airflow/logs
-    - ./plugins:/opt/airflow/plugins
+    - ${AIRFLOW_DATA}:/opt/airflow/data
+    - ${AIRFLOW_DAGS}:/opt/airflow/dags
+    - ${AIRFLOW_LOGS}:/opt/airflow/logs
+    - ${AIRFLOW_PLUGINS}:/opt/airflow/plugins
   user: "${AIRFLOW_UID:-50000}:0"
   networks:
     - app-network
@@ -25,10 +25,10 @@ services:
       <<: *airflow-common-env
       _AIRFLOW_DB_MIGRATE: "true"
       _AIRFLOW_WWW_USER_CREATE: "true"
-      _AIRFLOW_WWW_USER_USERNAME: airbnb
-      _AIRFLOW_WWW_USER_PASSWORD: airbnb
-      _AIRFLOW_WWW_USER_EMAIL: user123@gmail.com
-      _AIRFLOW_WWW_USER_ROLE: Admin
+      _AIRFLOW_WWW_USER_USERNAME: ${AIRFLOW_USER_USERNAME}
+      _AIRFLOW_WWW_USER_PASSWORD: ${AIRFLOW_USER_PASSWORD}
+      _AIRFLOW_WWW_USER_EMAIL: ${AIRFLOW_USER_EMAIL}
+      _AIRFLOW_WWW_USER_ROLE: ${AIRFLOW_USER_ROLE}
     volumes:
       - .:/sources
     depends_on:
@@ -43,7 +43,7 @@ services:
     environment:
       <<: *airflow-common-env 
     ports:
-      - 8080:8080
+      - ${AIRFLOW_WEB_SERVER_PORT}:8080
     restart: always
     networks:
       - app-network
@@ -63,16 +63,16 @@ services:
       - airflow-init
 
   postgres:
-    image: postgres:15.5-alpine
+    image: postgres:${POSTGRES_IMAGE_VERSION}
     container_name: postgres-db
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: airbnb
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - postgres-data:/var/lib/postgresql/data
     ports:
-      - 5432:5432
+      - ${POSTGRES_PORT}:5432
     restart: always
     networks:
       - app-network
