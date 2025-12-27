@@ -108,7 +108,7 @@ services:
       - mongo
 
 volumes:
-  pg_data:
+  pg-data:
     name: ${POSTGRES_VOLUME}
 
 networks:
