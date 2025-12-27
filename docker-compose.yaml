@@ -14,7 +14,7 @@ x-airflow-common:
     - ./plugins:/opt/airflow/plugins
   user: "${AIRFLOW_UID:-50000}:0"
   networks:
-    airbnb:
+    - app-network
 
 services:
   airflow-init:
@@ -34,7 +34,7 @@ services:
     depends_on:
       - postgres
     networks:
-      - airbnb
+      - app-network
 
   airflow-webserver:
     <<: *airflow-common
@@ -46,7 +46,7 @@ services:
       - 8080:8080
     restart: always
     networks:
-      - airbnb
+      - app-network
     depends_on:
       - airflow-init
 
@@ -58,7 +58,7 @@ services:
       <<: *airflow-common-env
     restart: always
     networks:
-      - airbnb
+      - app-network
     depends_on:
       - airflow-init
 
@@ -75,7 +75,7 @@ services:
       - 5432:5432
     restart: always
     networks:
-      - airbnb
+      - app-network
   
   mongo:
     image: skazuki/alpine-mongodb:${MONGODB_IMAGE_VERSION}
@@ -84,7 +84,7 @@ services:
       - "${MONGODB_PORT}:27017"
     restart: always
     networks:
-      - "${NETWORK_NAME}"
+      - app-network
   
   mongo-express:
     image: mongo-express:${MONGO_EXPRESS_IMAGE_VERSION}
@@ -97,7 +97,7 @@ services:
       - "${MONGO_EXPRESS_PORT}:8081"
     restart: always
     networks:
-      - "${NETWORK_NAME}"
+      - app-network
     depends_on:
       - mongo
 
@@ -105,4 +105,5 @@ volumes:
   postgres-data:
 
 networks:
-  airbnb:
+  app-network:
+    name: ${NETWORK_NAME}
