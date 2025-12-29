@@ -4,9 +4,9 @@ x-airflow-common:
   environment:
     &airflow-common-env
     AIRFLOW_EXECUTOR: ${AIRFLOW_EXECUTOR}
-    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgres+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres/${POSTGRES_DB}
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres/${POSTGRES_DB}
     AIRFLOW__CORE__LOAD_EXAMPLES: "false"
-    AIRFLOW__API__AUTH_BACKENDS: ${AIRFLOW__API__AUTH_BACKENDS}
+    AIRFLOW__API__AUTH_BACKENDS: ${AIRFLOW_API_AUTH_BACKENDS}
   volumes:
     - ${AIRFLOW_DATA}:/opt/airflow/data
     - ${AIRFLOW_DAGS}:/opt/airflow/dags
