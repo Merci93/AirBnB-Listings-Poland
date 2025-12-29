@@ -1,3 +1,4 @@
+asyncpg==0.31.0
 bs4==0.0.2
 colorlog==6.8.2
 connexion==2.14.2
