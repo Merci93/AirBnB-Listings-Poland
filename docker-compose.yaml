@@ -39,7 +39,7 @@ services:
   airflow-webserver:
     <<: *airflow-common
     container_name: airflow-webserver
-    command: webserver
+    command: api-server
     environment:
       <<: *airflow-common-env 
     ports:
