@@ -20,7 +20,7 @@ services:
   airflow-init:
     <<: *airflow-common
     container_name: airflow-init
-    command: ["bash", "-c", "airflow db init && airflow db migrate"]
+    command: ["bash", "-c", "airflow db migrate"]
     environment:
       <<: *airflow-common-env
       _AIRFLOW_DB_MIGRATE: "true"
