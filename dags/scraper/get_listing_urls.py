@@ -16,7 +16,7 @@ from scraper.selenium_driver import init_driver
 
 
 class ExtractListingURL:
-    """A class to handle listing URL extraction from Airbnb webpage."""
+    """A class to handle listing URL extraction from the webpage."""
     def __init__(self, base_url: str, cities: list[str], max_pages: int, debug: bool) -> None:
         """
         Initialize the ExtractListingURL class.
