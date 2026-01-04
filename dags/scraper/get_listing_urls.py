@@ -1,14 +1,8 @@
 """Extract listing urls from airbnb listing page for each city of interest."""
-import random
-import time
-from collections import defaultdict
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Dict, List
 
-from bs4 import BeautifulSoup
-from selenium import webdriver
+from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.common.exceptions import (
-    ElementNotInteractableException,
     NoSuchElementException,
     TimeoutException,
 )
@@ -21,106 +15,153 @@ from scraper.log_handler import logger
 from scraper.selenium_driver import init_driver
 
 
-class ExtractURL:
-    """A class listing url from airbnb webpage."""
-
-    @staticmethod
-    def city_url(driver: webdriver, city: str) -> Dict[str, List[str]]:
+class ExtractListingURL:
+    """A class to handle listing URL extraction from Airbnb webpage."""
+    def __init__(self, base_url: str, cities: list[str], max_pages: int, debug: bool) -> None:
         """
-        A function to extract URL data using the city name.
+        Initialize the ExtractListingURL class.
 
-        :param city: city name
+        :param url: Base webpage URL.
+        :param cities: List of cities to extract listings for.
+        :param max_pages: Maximum number of pages to scrape.
+        :param debug: Enable debug mode.
         """
-        logger.info(f"Extracting URLs for city {city} ...")
+        self.debug = debug
+        self.max_pages = max_pages
+        self.base_url = base_url
+        self.cities = cities if isinstance(cities, list) else [cities]
 
+    def extract_url(self) -> Dict[str, List[str]]:
+        """
+        Extract listing URLs per city.
+
+        :return: Dict mapping city name -> list of listing URLs.
+        """
+        logger.info("Starting listing URL extraction")
+        results: Dict[str, List[str]] = {}
+
+        for city in self.cities:
+            driver = None
+            try:
+                logger.info("Processing city: %s", city)
+
+                driver = init_driver(debug=self.debug)
+
+                logger.info("Wait while data is being extracted and processed for city %s...", city)
+
+                results[city] = self._extract_city(driver, city)
+
+            except Exception as exc:
+                logger.exception("Failed for city %s: %s", city, exc)
+                results[city] = []
+
+            finally:
+                if driver:
+                    driver.quit()
+
+        logger.info("Listing URL extraction completed")
+        return results
+
+    def _extract_city(self, driver: WebDriver, city: str) -> List[str]:
+        """
+        Extract listing URLs for a specific city.
+
+        :param driver: Selenium WebDriver instance
+        :param city: City name to search for
+        :return: List containing listing URLs for the city
+        """
+        driver.get(self.base_url)
+
+        self._dismiss_popups(driver)
+        self._search_city(driver, f"{city}, Poland")
+
+        collected: set[str] = set()
+        page_count = 0
+
+        while page_count < self.max_pages:
+            page_count += 1
+            self._wait_for_listings(driver)
+
+            urls = self._extract_listing_urls_from_page(driver)
+            if not urls:
+                break  # no listings found, stop
+
+            before = len(collected)
+            collected.update(urls)
+
+            if len(collected) == before:
+                break  # no new data, stop
+
+            if not self._next_page(driver):
+                break  # no next page, stop
+
+        return list(collected)
+
+    def _dismiss_popups(self, driver: WebDriver) -> None:
+        """
+        Dismiss any pop-ups or modals that may interfere with scraping.
+
+        :param driver: Selenium WebDriver instance
+        """
         try:
-            WebDriverWait(driver, 10).until(
-                EC.visibility_of_element_located((By.XPATH, '//*[@id="search-tabpanel"]/div[1]/div[1]/div[1]/label'))
-            )
+            WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.CLASS_NAME, "fp9kp52"))).click()
+        except (TimeoutException, NoSuchElementException):
+            WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Accept')]"))).click()
+        except Exception:
+            pass
 
-        except (TimeoutException, ElementNotInteractableException):
-            WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, "button.ffgcxut")))
+    def _search_city(self, driver: WebDriver, city: str) -> None:
+        """
+        Search for a city using the Airbnb search functionality.
 
-        try:
-            click_path = '//*[@id="search-tabpanel"]/div[1]/div[1]'
-            location_search = driver.find_element(By.XPATH, click_path)
-            location_search.click()
-        except (NoSuchElementException, ElementNotInteractableException):
-            location_search = driver.find_element(By.CSS_SELECTOR, "button.ffgcxut")
-            location_search.click()
-
-        WebDriverWait(driver, 10).until(
-            EC.visibility_of_element_located((By.XPATH, '//*[@id="search-tabpanel"]/div[1]/div[1]/div[1]/label/div'))
+        :param driver: Selenium WebDriver instance
+        :param city: City name to search for
+        """
+        search = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.ID, "bigsearch-query-location-input"))
         )
-
-        location_slot = driver.find_element(By.XPATH, '//*[@id="bigsearch-query-location-input"]')
-        location_slot.send_keys(Keys.CONTROL, "a")
-        time.sleep(random.uniform(2, 3))
-        location_slot.send_keys(Keys.DELETE)
-        time.sleep(random.uniform(2, 3))
-        location_slot.send_keys(city)
-        time.sleep(random.uniform(2, 3))
-        click_search = driver.find_element(By.CSS_SELECTOR, "button.b1tqc7mb")
+        search.clear()
+        search.send_keys(city)
+        search.send_keys(Keys.ENTER)
+        click_search = driver.find_element(By.CSS_SELECTOR, "button[aria-label='Search']")
         click_search.click()
 
-        city_urls = defaultdict(list)
-
-        while True:
-            time.sleep(random.uniform(1, 2))
-            try:
-                WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, "div.t1jojoys")))
-            except TimeoutException:
-                pass
-
-            html_body = BeautifulSoup(driver.page_source, "html.parser")
-            list_table = html_body.find_all("div", {"class": "cy5jw6o"})
-            listing_urls = [f'https://www.airbnb.com/{item.find("a").get("href")}' for item in list_table if item.find("a")]
-            city_urls[city].extend(listing_urls)
-
-            try:
-                WebDriverWait(driver, 5).until(EC.visibility_of_element_located((By.CSS_SELECTOR, "a.c1ytbx3a")))
-                next_page = driver.find_element(By.CSS_SELECTOR, "a.c1ytbx3a")
-                next_page.click()
-            except (TimeoutException, NoSuchElementException):
-                break
-
-        logger.info(f"Listing URL extraction for {city} completed.")
-        return {city: city_urls[city]}
-
-    @staticmethod
-    def extract_url(url: str, cities: List[str]) -> Dict[str, List[str]]:
+    def _wait_for_listings(self, driver: WebDriver) -> None:
         """
-        Extract listing URLs.
+        Wait for the listing elements to load on the page.
 
-        :param cities: List of cities to extract their listings
-        :param url: Webpage url.
-        :return: Dictionary containing key-value pairs of city names and a list of listing URLS in the city.
+        :param driver: Selenium WebDriver instance
         """
-        logger.info("<<<<<<<<<<<<<<<<< Extracting Listing URLs ... >>>>>>>>>>>>>>>>>>>>>>>>")
+        try:
+            WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, "a[href*='/rooms/']"))
+            )
+        except TimeoutException:
+            # In headless mode, sometimes elements take longer to load or cannot be found
+            # but these elements are already there, skip and continue
+            pass
 
-        def fetch_city_url(city: str) -> Dict[str, List[str]]:
-            driver = init_driver()
-            driver.get(url)
-            try:
-                WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, '_1swasop'))).click()
-            except (NoSuchElementException, TimeoutException):
-                pass
-            result = ExtractURL.city_url(driver=driver, city=f"{city}, Poland")
-            driver.quit()
-            return result
+    def _extract_listing_urls_from_page(self, driver: WebDriver) -> List[str]:
+        """
+        Extract listing URLs from the current page.
 
-        city_listing_urls = {}
+        :param driver: Selenium WebDriver instance
+        :return: List of listing URLs
+        """
+        anchors = driver.find_elements(By.CSS_SELECTOR, "a[href*='/rooms/']")
+        return [href for a in anchors if (href := a.get_attribute('href'))]
 
-        with ThreadPoolExecutor(max_workers=8) as executor:
-            future_to_city = {executor.submit(fetch_city_url, city): city for city in cities}
+    def _next_page(self, driver: WebDriver) -> bool:
+        """
+        Navigate to the next page of listings if available.
 
-            for future in as_completed(future_to_city):
-                city = future_to_city[future]
-                try:
-                    result = future.result()
-                    city_listing_urls.update(result)
-                except Exception as e:
-                    logger.error(f"Error occurred while fetching data for city {city}: {e}")
-
-        logger.info("<<<<<<<<<<<<<<<<< Listing URLs extraction completed. >>>>>>>>>>>>>>>>>>>>>>>>>>")
-        return city_listing_urls
+        :param driver: Selenium WebDriver instance
+        :return: True if navigated to next page, False otherwise
+        """
+        try:
+            next_button = driver.find_element(By.XPATH, "//a[@aria-label='Next']")
+            next_button.click()
+            return True
+        except (TimeoutException, NoSuchElementException):
+            logger.info("No more pages available.")
+            return False
