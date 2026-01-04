@@ -13,7 +13,7 @@ def init_driver(debug: bool = False) -> webdriver.Chrome:
     chrome_options = Options()
 
     if not debug:
-        # Initialize Chrome driver in headless mode when in Debug mode
+        logger.info("Initializing headless Chrome driver...")
         chrome_options.add_argument("--headless=new")
     else:
         logger.info("Initializing non-headless Chrome driver...")
@@ -50,7 +50,6 @@ def init_driver(debug: bool = False) -> webdriver.Chrome:
         options=chrome_options,
     )
 
-    if debug:
-        logger.info("Chrome driver initialized successfully.")
+    logger.info("Chrome driver initialized successfully.")
 
     return driver
