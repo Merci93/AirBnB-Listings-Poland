@@ -10,14 +10,13 @@ def init_driver(debug: bool = False) -> webdriver.Chrome:
     """
     Initialize a production-safe headless Chrome WebDriver
     """
-
-    if debug:
-        logger.info("Initializing headless Chrome driver...")
-
     chrome_options = Options()
 
-    # Headless (modern Chrome)
-    chrome_options.add_argument("--headless=new")
+    if not debug:
+        # Initialize Chrome driver in headless mode when in Debug mode
+        chrome_options.add_argument("--headless=new")
+    else:
+        logger.info("Initializing non-headless Chrome driver...")
 
     # Required for Docker / CI
     chrome_options.add_argument("--no-sandbox")
