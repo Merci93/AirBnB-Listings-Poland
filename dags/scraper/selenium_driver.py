@@ -8,25 +8,24 @@ from scraper.log_handler import logger
 
 def init_driver(debug: bool = False) -> webdriver.Chrome:
     """
-    Initialize a production-safe headless Chrome WebDriver
+    Initialize a safe headless Chrome WebDriver
     """
-
-    if debug:
-        logger.info("Initializing headless Chrome driver...")
-
     chrome_options = Options()
 
-    # Headless (modern Chrome)
-    chrome_options.add_argument("--headless=new")
+    if not debug:
+        logger.info("Initializing headless Chrome driver...")
+        chrome_options.add_argument("--headless=new")
+    else:
+        logger.info("Initializing non-headless Chrome driver...")
 
-    # Required for Docker / CI
+    # Required for Docker
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--disable-extensions")
     chrome_options.add_argument("--remote-debugging-port=9222")
 
-    # UX / noise reduction
+    # Interface noise reduction
     chrome_options.add_argument("--disable-infobars")
     chrome_options.add_argument("--disable-logging")
     chrome_options.add_argument("--lang=en-US")
@@ -51,7 +50,6 @@ def init_driver(debug: bool = False) -> webdriver.Chrome:
         options=chrome_options,
     )
 
-    if debug:
-        logger.info("Chrome driver initialized successfully.")
+    logger.info("Chrome driver initialized successfully.")
 
     return driver
