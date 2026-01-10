@@ -4,6 +4,7 @@
 # Environment
 .venv
 .env
+env/
 
 # Cache folders
 __pycache__/
@@ -16,3 +17,6 @@ plugins
 *.pdf
 *.drawio
 *.bkp
+
+# Python Version
+.python-version
