@@ -1,13 +1,14 @@
 """Airflow DAG script."""
+
 import os
 from datetime import timedelta
 from typing import List
 
 import pandas as pd
-from airflow import DAG
-from airflow.sdk import task
+from airflow.decorators import dag, task
 from airflow.models import Variable
-from airflow.operators.python import PythonOperator
+from airflow.utils.dates import days_ago
+
 
 from dags.log_handler import logger
 from scraper.get_listing_urls import ExtractListingURL
@@ -16,7 +17,7 @@ from scraper.transform_data import ExtractListingData
 
 url = "https://www.airbnb.com/"
 
-default_args = {
+DEFAULT_ARGS = {
     "owner": "Airbnb",
     "retries": 2,
     "retry_delay": timedelta(seconds=30),
@@ -55,6 +56,22 @@ def read_file() -> List[str]:
 
     logger.info("Loaded %d cities", len(city_list))
     return city_list
+
+
+@dag(
+    dag_id="airbnb_read_cities",
+    description="Read city list from CSV for data scraping",
+    default_args=DEFAULT_ARGS,
+    schedule=None,
+    start_date=days_ago(1),
+    catchup=False,
+    tags=["airbnb", "etl"],
+)
+def airbnb_read_cities_dag():
+    read_file()
+
+
+airbnb_read_cities_dag()
 
 
 # @task
