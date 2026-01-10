@@ -1,17 +1,12 @@
 """Scrapes select data from the given URL, specifically written to extract data from AirBnB webpage."""
-import random
 import re
-import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from typing import Any, Dict, List
 
 from bs4 import BeautifulSoup
-from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-from unidecode import unidecode
 
 from scraper.log_handler import logger
 from scraper.selenium_driver import init_driver
@@ -19,212 +14,225 @@ from scraper.selenium_driver import init_driver
 
 class ExtractListingData:
     """
-    A class to get listing HTML data from the listing URL, and extract required listing data and return
-    a dictionary of extracted informations.
+    Extract structured listing data from listing URL.
     """
-
-    @staticmethod
-    def extract_and_transform_data(city: str, listing_url: str) -> List[Dict[str, Any]]:
+    def __init__(self, city: str, listing_urls: List[str], debug: bool = False):
         """
-        Extract listing data from the listing url, and return list of dictionaries with extracted data.
+        Initialize ExtractListingData class
 
-        :param city: City name.
-        :param listing_url: Listing URL string.
+        :param city: City name
+        :param listing_urls: URL for each listing found per city
+        :param debug: Flag to initilaize webdriver in debug mode
         """
-        driver = init_driver()
-        wait = WebDriverWait(driver, 10)
+        self.city = city
+        self.listing_urls = listing_urls
+        self.debug = debug
+        self.driver = init_driver(debug=debug)
+        self.wait = WebDriverWait(self.driver, 15)
 
-        driver.get(listing_url)
+    def extract_listings(self) -> List[Dict[str, Any]]:
+        """
+        A function to extract listing data from listing URL.
+
+        :return: _description_
+        """
+        results = []
+
         try:
-            time.sleep(random.uniform(2, 3))
-            driver.find_element(By.XPATH, '//button[@aria-label="Close"]').click()
+            logger.info("Extracting listing data for city %s ...", self.city)
+
+            for url in self.listing_urls:
+                try:
+                    data = self._extract_single_listing(url)
+                    results.append(data)
+
+                except RuntimeError as exc:
+                    logger.error("Blocked or schema change detected: %s", exc)
+                    break  # stop entire city batch
+
+                except Exception as exc:
+                    logger.exception("Failed listing extraction %s: %s", url, exc)
+
+        finally:
+            self.driver.quit()
+            logger.info("Data Extraction completed. Webdriver terminated.")
+
+        return results
+
+    def _extract_single_listing(self, url: str) -> Dict[str, Any]:
+        self.driver.get(url)
+
+        self._dismiss_popups()
+        # self._assert_not_blocked()
+
+        self.wait.until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, "h1"))
+        )
+
+        bs_listing_html = BeautifulSoup(self.driver.page_source, "html.parser")
+
+        listing_id = url.split("?")[0].rsplit("/", 1)[-1]
+        title = bs_listing_html.title.text.strip() if bs_listing_html.title else "N/A"
+
+        listing_price = self._extract_price(bs_listing_html)
+        specs = self._extract_specs(bs_listing_html)
+        ratings = self._extract_ratings(bs_listing_html)
+        amenities = self._extract_amenities()
+
+        return {
+            "city": self.city,
+            "listing_id": int(listing_id),
+            "title": title,
+            "price": listing_price,
+            **specs,
+            **ratings,
+            **amenities,
+            "url": url,
+            "date_pulled": datetime.today().strftime('%Y-%m-%d')
+        }
+
+    def _close_translation_notification(self) -> None:
+        pass
+
+    def _assert_not_blocked(self) -> None:
+        page_text = self.driver.page_source.lower()
+        if "captcha" in page_text or "verify" in page_text:
+            raise RuntimeError("Captcha or bot verification detected")
+
+    def _dismiss_popups(self) -> None:
+        try:
+            self.wait.until(
+                EC.element_to_be_clickable((By.XPATH, "//button[@aria-label='Close']"))
+            ).click()
         except Exception:
             pass
 
-        time.sleep(random.uniform(2, 3))
-        listing_html = BeautifulSoup(driver.page_source, "html.parser")
+    def _extract_price(self, bs_listing_html: BeautifulSoup) -> str:
+        """Extract listing price."""
+        rating_text = bs_listing_html.get_text(" ").lower()
 
-        listing_id = listing_url.split("?")[0].rsplit("/", 1)[-1]
-        listing_title = unidecode(listing_html.title.text)
-        specs = [re.sub("·", "", item.text).strip() for item in listing_html.find_all("li", {"class": "l7n4lsf"})]
-        guests = next((item for item in specs if "guest" in item), "N/A")
-        bathroom = next((item for item in specs if "bath" in item), "N/A")
-        bedroom = next((item for item in specs if re.search(r"\bbed(s)?\b", item)), "N/A")
-        apartment_type = next((item for item in specs if "studio" in item.lower() or "bedroom" in item.lower()), "N/A")
-        try:
-            price_per_night = unidecode(listing_html.find("span", {"class": "_11jcbg2"}).text)
-        except Exception:
-            price_per_night = "N/A"
-        try:
-            stars = float(listing_html.find("div", {"class": "r1lutz1s"}).text)
-        except Exception:
-            try:
-                stars = float(re.search(r"\d.{3}", listing_html.find("a", {"class": "l1ovpqvx"}).text, re.IGNORECASE).group())
-            except Exception:
-                stars = "N/A"
+        match = re.search(r'(\d{1,3}(?:,\d{3})*)\s*(zł)', rating_text)
+        if not match:
+            return "N/A"
 
-        try:
-            no_of_reviews = re.sub(
-                "Reviews", " reviews", re.search(r'\d+\s*Reviews?', listing_html.find("a", {"class": "l1ovpqvx"}).text).group(),
-                re.IGNORECASE
-            )
-        except Exception:
-            try:
-                no_of_reviews = listing_html.find("a", {"class": "l1ovpqvx"}).text
-            except Exception:
-                no_of_reviews = "N/A"
+        return f"{match.group(1)} {match.group(2)}"
 
-        try:
-            check_in_date = datetime.strptime(
-                listing_html.find("div", {"class": "_19y8o0j"}).find("div", {"class": "_tekaj0"}).text.strip(), "%m/%d/%Y"
-            ).date()
-        except Exception:
-            check_in_date = "Missed"
+    def _extract_specs(self, bs_listing_html: BeautifulSoup) -> Dict[str, Any]:
+        """Extract specifications for each listing."""
 
-        try:
-            check_out_date = datetime.strptime(
-                listing_html.find("div", {"class": "_48vms8s"}).find("div", {"class": "_tekaj0"}).text.strip(), "%m/%d/%Y"
-            ).date()
-        except Exception:
-            check_out_date = "Missed"
+        text_blocks = [(li.get_text(separator=" ") or "").lower().strip() for li in bs_listing_html.find_all("li")]
 
-        overall_rating = [item.text for item in listing_html.find_all("div", {"class": "c18arpj7"})]
-        cleanliness = next((float(re.search(r"\d.{2}", item).group()) for item in overall_rating if "cleanliness" in item), "N/A")
-        accuracy = next((float(re.search(r"\d.{2}", item).group()) for item in overall_rating if "accuracy" in item), "N/A")
-        check_in = next((float(re.search(r"\d.{2}", item).group()) for item in overall_rating if "check-in" in item), "N/A")
-        comm = next((float(re.search(r"\d.{2}", item).group()) for item in overall_rating if "communication" in item), "N/A")
-        location = next((float(re.search(r"\d.{2}", item).group()) for item in overall_rating if "location" in item), "N/A")
-        value = next((float(re.search(r"\d.{2}", item).group()) for item in overall_rating if "value" in item), "N/A")
-        try:
-            host_response_rate = re.search(r'\b\d{1,3}%\b', listing_html.find("div", {"class": "h1geptgj"}).text).group()
-        except Exception:
-            host_response_rate = "N/A"
+        def extract_number(patterns: list[str], block_contains_shared: bool = False):
+            for block in text_blocks:
+                for pattern in patterns:
+                    if re.search(rf"\b{pattern}\b", block):
+                        shared = block_contains_shared and "shared" in block
+                        match = re.search(r"(\d+)", block)
+                        return (int(match.group(1)), shared) if match else ("N/A", shared)
+            return "N/A", False
 
-        click_action = ActionChains(driver)
-        xpath = "//button[starts-with(text(), 'Show all') and (contains(text(), 'amenities') or contains(text(), 'amenity details'))]"
-        show_ammenities = wait.until(EC.element_to_be_clickable((By.XPATH, xpath)))
-        click_action.move_to_element(show_ammenities).click().perform()
-        time.sleep(random.uniform(2, 3))
-        ammenities_html = BeautifulSoup(driver.page_source, "html.parser")
-        ammenities = [
-            item.text.lower()
-            for item in ammenities_html.find_all("div", {"class": "_3hmsj"})[-1].find_all("div", {"class": "rten07p"})
-            if "Unavailable" not in item.text
-        ]
-        bathtub = next(("Yes" for item in ammenities if "bathtub" in item), "No")
-        hot_water = next(("Yes" for item in ammenities if "hot water" in item), "No")
-        hangers = next(("Yes" for item in ammenities if "hanger" in item), "No")
-        bed_linens = next(("Yes" for item in ammenities if "bed linen" in item), "No")
-        iron = next(("Yes" for item in ammenities if "iron" in item), "No")
-        kitchen = next(("Yes" for item in ammenities if "kitchen" in item), "No")
-        wifi = next(("Yes" for item in ammenities if "wifi" in item), "No")
-        elevator = next(("Yes" for item in ammenities if "wifi" in item), "No")
-        washer = next(("Yes" for item in ammenities if "washer" in item), "No")
-        parking = next(("Yes" for item in ammenities if "parking" in item or "garage" in item), "No")
-        workspace = next(("Yes" for item in ammenities if "workspace" in item), "No")
-        pets_allowed = next(("Yes" for item in ammenities if "pets" in item), "No")
-        hair_dryer = next(("Yes" for item in ammenities if "hair dryer" in item), "No")
-        heating = next(("Yes" for item in ammenities if "heating" in item), "No")
-        refrigerator = next(("Yes" for item in ammenities if "refrigerator" in item), "No")
-        stove = next(("Yes" for item in ammenities if "stove" in item), "No")
-        oven = next(("Yes" for item in ammenities if "oven" in item), "No")
-        coffee_maker = next(("Yes" for item in ammenities if "coffee maker" in item), "No")
-        dining_table = next(("Yes" for item in ammenities if "dining table" in item), "No")
-        self_check_in = next(("Yes" for item in ammenities if "self check-in" in item), "No")
-        lockbox = next(("Yes" for item in ammenities if "lockbox" in item), "No")
-        cooking_pots = next(("Yes" for item in ammenities if "pots" in item), "No")
-        smoke_alarm = next(("Yes" for item in ammenities if "smoke alarm" in item), "No")
-        co2_alarm = next(("Yes" for item in ammenities if "monoxide alarm" in item), "No")
-        dish_washer = next(("Yes" for item in ammenities if "dishwasher" in item), "No")
-        patio_and_balcony = next(("Yes" for item in ammenities if "patio" in item or "balcony" in item), "No")
-        tv = next(("Yes" for item in ammenities if "tv" in item), "No")
-        hot_kettle = next(("Yes" for item in ammenities if "kettle" in item), "No")
+        guests, _ = extract_number(["guest", "guests"])
+        bedrooms, shared_bedroom = extract_number(["bedroom", "bedrooms"], block_contains_shared=True)
+        beds, _ = extract_number(["bed", "beds"])
+        bathrooms, shared_bathroom = extract_number(["bath", "baths"], block_contains_shared=True)
 
-        users_review = [
-            item.find("span", {"class": "lrl13de"}).text
-            for item in listing_html.find("div", {"class": "_88xxct"}).find_all("div", {"class": "_b7zir4z"})
-        ]
-        review_1, review_2, review_3 = (users_review + [None] * 3)[:3]
+        property_type = "studio" if any("studio" in t for t in text_blocks) else "N/A"
 
-        listing_data = {
-            "city": city,
-            "listing_id": int(listing_id),
-            "title": listing_title,
+        return {
             "guests": guests,
-            "bathrooms": bathroom,
-            "bedrooms": bedroom,
-            "apartment_type": apartment_type,
-            "price_per_night": price_per_night,
-            "check_in_date": check_in_date,
-            "check_out_date": check_out_date,
-            "star": stars,
-            "number_of_reviews": no_of_reviews,
-            "cleanliness": cleanliness,
-            "accuracy": accuracy,
-            "check_in": check_in,
-            "communication": comm,
-            "location": location,
-            "value": value,
-            "host_response_rate": host_response_rate,
-            "bathtub": bathtub,
-            "hot_water": hot_water,
-            "hangers": hangers,
-            "bed_linens": bed_linens,
-            "iron": iron,
-            "kitchen": kitchen,
-            "wifi": wifi,
-            "elevator": elevator,
-            "washer": washer,
-            "parking": parking,
-            "workspace": workspace,
-            "pets_allowed": pets_allowed,
-            "hair_dryer": hair_dryer,
-            "heating": heating,
-            "refrigerator": refrigerator,
-            "stove": stove,
-            "oven": oven,
-            "coffee_maker": coffee_maker,
-            "dining_table": dining_table,
-            "self_check_in": self_check_in,
-            "lockbox": lockbox,
-            "cooking_pots": cooking_pots,
-            "smoke_alarm": smoke_alarm,
-            "carbon_monoxide_alarm": co2_alarm,
-            "dish_washer": dish_washer,
-            "patio_or_balcony": patio_and_balcony,
-            "television": tv,
-            "hot_water_kettle": hot_kettle,
-            "review_1": review_1,
-            "review_2": review_2,
-            "review_3": review_3
+            "bedrooms": bedrooms,
+            "shared_bedroom": shared_bedroom,
+            "beds": beds,
+            "bathrooms": bathrooms,
+            "shared_bathroom": shared_bathroom,
+            "property_type": property_type,
         }
 
-        driver.quit()
-        return listing_data
+    def _extract_ratings(self, bs_listing_html: BeautifulSoup) -> Dict[str, Any]:
+        """Extract ratings for each listing."""
+        rating_text = bs_listing_html.get_text(" ").lower()
 
-    def extract_data_from_url(listiing_urls: Dict[str, List[str]]) -> List[Dict[str, Any]]:
-        """
-        A function to extract listing data from Airbnb listing URLs.
+        def extract_float(label: str):
+            match = re.search(rf"{label}.*?(\d\.\d)", rating_text)
+            return float(match.group(1)) if match else "N/A"
 
-        :param listiing_urls: Dictionary with key-value pairs of city name and list of listing URLs.
-        :return: A list of dictionary containing extracted data.
-        """
-        listing_data = []
+        def extract_int(label: str):
+            match = re.search(rf"(\d+)\s+{re.escape(label)}\b", rating_text, re.IGNORECASE)
+            return int(match.group(1)) if match else "N/A"
 
-        logger.info("<<<<<<<<<<<<<<<<< Extracting Listing data ... >>>>>>>>>>>>>>>>>>>>>>>>")
-        with ThreadPoolExecutor(max_workers=5) as executor:
-            future_to_data = {
-                executor.submit(ExtractListingData.extract_and_transform_data, city, url):
-                    (city, url) for city, urls in listiing_urls.items() for url in urls[:5]
-            }
+        return {
+            "overall_rating": extract_float("rated"),
+            "cleanliness": extract_float("cleanliness"),
+            "accuracy": extract_float("accuracy"),
+            "communication": extract_float("communication"),
+            "location": extract_float("location"),
+            "value": extract_float("value"),
+            "check_in": extract_float("check-in"),
+            "reviews": extract_int("reviews"),
+            "nights": extract_int("nights")
+        }
 
-            for future in as_completed(future_to_data):
-                city, url = future_to_data[future]
-                try:
-                    result = future.result()
-                    listing_data.append(result)
-                except Exception as e:
-                    logger.error(f"An error occurred while fetching data for {city}: {e}")
-                    logger.error(f"Failed URL: {url}")
-        logger.info("<<<<<<<<<<<<<<<<< Listing data extraction completed. >>>>>>>>>>>>>>>>>>>>>>>>>>")
-        return listing_data
+    def _extract_amenities(self) -> Dict[str, Any]:
+        """Extract ammenities of each listing."""
+        try:
+            button = self.wait.until(
+                EC.element_to_be_clickable(
+                    (By.XPATH, "//button[starts-with(., 'Show all')]")
+                )
+            )
+            button.click()
+            self.wait.until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, "section"))
+            )
+        except Exception:
+            return {}
+
+        bs_listing_html = BeautifulSoup(self.driver.page_source, "html.parser")
+        amenities = {div.text.lower() for div in bs_listing_html.select("section div")}
+
+        def has(term: str):
+            return "Yes" if any(term in a for a in amenities) else "No"
+
+        return {
+            "wifi": has("wifi"),
+            "kitchen": has("kitchen"),
+            "washer": has("washer"),
+            "parking": has("parking"),
+            "air_conditioning": has("air conditioning"),
+            "heating": has("heating"),
+            "tv": has("tv"),
+            "pets_allowed": has("pets"),
+            "refrigerator": has("refrigerator"),
+        }
+
+    def _extract_customer_comments(self, bs_listing_html: BeautifulSoup, limit: int = 3) -> List[str]:
+        """Extract user review comments from listing HTML (mixed-case text)."""
+        comments = []
+
+        listings_text = bs_listing_html.get_text(" ")
+        normalized_text = re.sub(r'\s+', ' ', listings_text)
+
+        review_split = re.split(r"\b\d+\s+years\s+on\s+airbnb\b", normalized_text, flags=re.IGNORECASE)
+
+        for text_block in review_split[1:]:
+            if len(comments) >= limit:
+                break
+
+            # Cut off at the end of review section
+            text_block = re.split(
+                r"\b(show more|show all reviews|how reviews work|meet your host|where you’ll be)\b",
+                text_block, flags=re.IGNORECASE
+            )[0]
+
+            # Remove rating and date metadata
+            text_block = re.sub(r"Rating,\s*\d+(\.\d+)?\s*stars\s*,?", "", text_block, flags=re.IGNORECASE)
+            text_block = re.sub(r"·\s*[A-Za-z]+\s+\d{4}", "", text_block)
+            text_block = re.sub(r"·\s*Stayed\s+.*?(?=\w|$)", "", text_block, flags=re.IGNORECASE)
+
+            text_block = text_block.strip(" ,.-")
+
+            # Heuristic: require minimum word count
+            if len(text_block.split()) >= 12:
+                comments.append(text_block.strip())
+
+        return comments
