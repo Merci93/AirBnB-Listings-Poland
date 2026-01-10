@@ -8,8 +8,10 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
-from scraper.log_handler import logger
-from scraper.selenium_driver import init_driver
+# from scraper.log_handler import logger
+# from scraper.selenium_driver import init_driver
+from log_handler import logger
+from selenium_driver import init_driver
 
 
 class ExtractListingData:
@@ -59,7 +61,8 @@ class ExtractListingData:
 
         return results
 
-    def _extract_single_listing(self, url: str) -> Dict[str, Any]:
+    def _extract_single_listing(self, url: str) -> Any:
+        import time
         self.driver.get(url)
 
         self._dismiss_popups()
@@ -68,28 +71,41 @@ class ExtractListingData:
         self.wait.until(
             EC.presence_of_element_located((By.CSS_SELECTOR, "h1"))
         )
-
+        time.sleep(5)
         bs_listing_html = BeautifulSoup(self.driver.page_source, "html.parser")
+        return bs_listing_html
 
-        listing_id = url.split("?")[0].rsplit("/", 1)[-1]
-        title = bs_listing_html.title.text.strip() if bs_listing_html.title else "N/A"
+    # def _extract_single_listing(self, url: str) -> Dict[str, Any]:
+    #     self.driver.get(url)
 
-        listing_price = self._extract_price(bs_listing_html)
-        specs = self._extract_specs(bs_listing_html)
-        ratings = self._extract_ratings(bs_listing_html)
-        amenities = self._extract_amenities()
+    #     self._dismiss_popups()
+    #     # self._assert_not_blocked()
 
-        return {
-            "city": self.city,
-            "listing_id": int(listing_id),
-            "title": title,
-            "price": listing_price,
-            **specs,
-            **ratings,
-            **amenities,
-            "url": url,
-            "date_pulled": datetime.today().strftime('%Y-%m-%d')
-        }
+    #     self.wait.until(
+    #         EC.presence_of_element_located((By.CSS_SELECTOR, "h1"))
+    #     )
+
+    #     bs_listing_html = BeautifulSoup(self.driver.page_source, "html.parser")
+
+    #     listing_id = url.split("?")[0].rsplit("/", 1)[-1]
+    #     title = bs_listing_html.title.text.strip() if bs_listing_html.title else "N/A"
+
+    #     listing_price = self._extract_price(bs_listing_html)
+    #     specs = self._extract_specs(bs_listing_html)
+    #     ratings = self._extract_ratings(bs_listing_html)
+    #     amenities = self._extract_amenities()
+
+    #     return {
+    #         "city": self.city,
+    #         "listing_id": int(listing_id),
+    #         "title": title,
+    #         "price": listing_price,
+    #         **specs,
+    #         **ratings,
+    #         **amenities,
+    #         "url": url,
+    #         "date_pulled": datetime.today().strftime('%Y-%m-%d')
+    #     }
 
     def _close_translation_notification(self) -> None:
         pass
@@ -206,32 +222,32 @@ class ExtractListingData:
         }
 
     def _extract_customer_comments(self, bs_listing_html: BeautifulSoup, limit: int = 3) -> List[str]:
-        """Extract user review comments."""
+        """Extract user review comments from listing HTML (mixed-case text)."""
         comments = []
 
-        listings_text = bs_listing_html.get_text(" ").lower()
-        normalized_texts = re.sub(r'\s+', ' ', listings_text)
+        listings_text = bs_listing_html.get_text(" ")
+        normalized_text = re.sub(r'\s+', ' ', listings_text)
 
-        review_split = re.split(r"\b\d+\s+years\s+on\s+airbnb\b", normalized_texts)
+        review_split = re.split(r"\b\d+\s+years\s+on\s+airbnb\b", normalized_text, flags=re.IGNORECASE)
 
         for text_block in review_split[1:]:
             if len(comments) >= limit:
                 break
 
-            # Cut off anything after review section ends
+            # Cut off at the end of review section
             text_block = re.split(
                 r"\b(show more|show all reviews|how reviews work|meet your host|where you’ll be)\b",
-                text_block
+                text_block, flags=re.IGNORECASE
             )[0]
 
-            # Remove rating/date metadata
-            text_block = re.sub(r"rating,\s*\d+(\.\d+)?\s*stars\s*,?", "", text_block)
-            text_block = re.sub(r"·\s*[a-z]+\s+\d{4}", "", text_block)
-            text_block = re.sub(r"·\s*stayed.*?(?=\w)", "", text_block)
+            # Remove rating and date metadata
+            text_block = re.sub(r"Rating,\s*\d+(\.\d+)?\s*stars\s*,?", "", text_block, flags=re.IGNORECASE)
+            text_block = re.sub(r"·\s*[A-Za-z]+\s+\d{4}", "", text_block)
+            text_block = re.sub(r"·\s*Stayed\s+.*?(?=\w|$)", "", text_block, flags=re.IGNORECASE)
 
             text_block = text_block.strip(" ,.-")
 
-            # Heuristic: require reasonable length to be a real comment
+            # Heuristic: require minimum word count
             if len(text_block.split()) >= 12:
                 comments.append(text_block.strip())
 
