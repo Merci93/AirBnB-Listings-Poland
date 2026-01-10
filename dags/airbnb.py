@@ -1,18 +1,17 @@
 """Airflow DAG script."""
 
 import os
-from datetime import timedelta
+from datetime import datetime, timedelta
 from typing import List
 
 import pandas as pd
-from airflow.decorators import dag, task
+from airflow.sdk import dag, task
 from airflow.models import Variable
-from airflow.utils.dates import days_ago
 
 
-from dags.log_handler import logger
-from scraper.get_listing_urls import ExtractListingURL
-from scraper.transform_data import ExtractListingData
+# from dags.log_handler import logger
+# from scraper.get_listing_urls import ExtractListingURL
+# from scraper.transform_data import ExtractListingData
 
 
 url = "https://www.airbnb.com/"
@@ -31,7 +30,7 @@ def read_file() -> List[str]:
 
     :return: List of city names.
     """
-    logger.info("Reading city file")
+    # logger.info("Reading city file")
 
     file_path = Variable.get(
         "csv_file_path",
@@ -54,7 +53,7 @@ def read_file() -> List[str]:
         .tolist()
     )
 
-    logger.info("Loaded %d cities", len(city_list))
+    # logger.info("Loaded %d cities", len(city_list))
     return city_list
 
 
@@ -62,16 +61,16 @@ def read_file() -> List[str]:
     dag_id="airbnb_read_cities",
     description="Read city list from CSV for data scraping",
     default_args=DEFAULT_ARGS,
-    schedule=None,
-    start_date=days_ago(1),
+    schedule_interval=None,
+    start_date=datetime(2026, 1, 10),
     catchup=False,
     tags=["airbnb", "etl"],
 )
 def airbnb_read_cities_dag():
-    read_file()
+    return read_file()
 
 
-airbnb_read_cities_dag()
+citties = airbnb_read_cities_dag()
 
 
 # @task
