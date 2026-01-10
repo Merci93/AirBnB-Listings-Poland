@@ -169,6 +169,7 @@ class ExtractListingData:
             "value": extract_float("value"),
             "check_in": extract_float("check-in"),
             "reviews": extract_int("reviews"),
+            "nights": extract_int("nights")
         }
 
     def _extract_amenities(self) -> Dict[str, Any]:
