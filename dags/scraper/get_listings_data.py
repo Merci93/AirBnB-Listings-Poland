@@ -204,3 +204,35 @@ class ExtractListingData:
             "pets_allowed": has("pets"),
             "refrigerator": has("refrigerator"),
         }
+
+    def _extract_customer_comments(self, bs_listing_html: BeautifulSoup, limit: int = 3) -> List[str]:
+        """Extract user review comments."""
+        comments = []
+
+        listings_text = bs_listing_html.get_text(" ").lower()
+        normalized_texts = re.sub(r'\s+', ' ', listings_text)
+
+        review_split = re.split(r"\b\d+\s+years\s+on\s+airbnb\b", normalized_texts)
+
+        for text_block in review_split[1:]:
+            if len(comments) >= limit:
+                break
+
+            # Cut off anything after review section ends
+            text_block = re.split(
+                r"\b(show more|show all reviews|how reviews work|meet your host|where you’ll be)\b",
+                text_block
+            )[0]
+
+            # Remove rating/date metadata
+            text_block = re.sub(r"rating,\s*\d+(\.\d+)?\s*stars\s*,?", "", text_block)
+            text_block = re.sub(r"·\s*[a-z]+\s+\d{4}", "", text_block)
+            text_block = re.sub(r"·\s*stayed.*?(?=\w)", "", text_block)
+
+            text_block = text_block.strip(" ,.-")
+
+            # Heuristic: require reasonable length to be a real comment
+            if len(text_block.split()) >= 12:
+                comments.append(text_block.strip())
+
+        return comments
