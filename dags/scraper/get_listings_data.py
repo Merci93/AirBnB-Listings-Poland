@@ -61,8 +61,7 @@ class ExtractListingData:
 
         return results
 
-    def _extract_single_listing(self, url: str) -> Any:
-        import time
+    def _extract_single_listing(self, url: str) -> Dict[str, Any]:
         self.driver.get(url)
 
         self._dismiss_popups()
@@ -71,41 +70,28 @@ class ExtractListingData:
         self.wait.until(
             EC.presence_of_element_located((By.CSS_SELECTOR, "h1"))
         )
-        time.sleep(5)
+
         bs_listing_html = BeautifulSoup(self.driver.page_source, "html.parser")
-        return bs_listing_html
 
-    # def _extract_single_listing(self, url: str) -> Dict[str, Any]:
-    #     self.driver.get(url)
+        listing_id = url.split("?")[0].rsplit("/", 1)[-1]
+        title = bs_listing_html.title.text.strip() if bs_listing_html.title else "N/A"
 
-    #     self._dismiss_popups()
-    #     # self._assert_not_blocked()
+        listing_price = self._extract_price(bs_listing_html)
+        specs = self._extract_specs(bs_listing_html)
+        ratings = self._extract_ratings(bs_listing_html)
+        amenities = self._extract_amenities()
 
-    #     self.wait.until(
-    #         EC.presence_of_element_located((By.CSS_SELECTOR, "h1"))
-    #     )
-
-    #     bs_listing_html = BeautifulSoup(self.driver.page_source, "html.parser")
-
-    #     listing_id = url.split("?")[0].rsplit("/", 1)[-1]
-    #     title = bs_listing_html.title.text.strip() if bs_listing_html.title else "N/A"
-
-    #     listing_price = self._extract_price(bs_listing_html)
-    #     specs = self._extract_specs(bs_listing_html)
-    #     ratings = self._extract_ratings(bs_listing_html)
-    #     amenities = self._extract_amenities()
-
-    #     return {
-    #         "city": self.city,
-    #         "listing_id": int(listing_id),
-    #         "title": title,
-    #         "price": listing_price,
-    #         **specs,
-    #         **ratings,
-    #         **amenities,
-    #         "url": url,
-    #         "date_pulled": datetime.today().strftime('%Y-%m-%d')
-    #     }
+        return {
+            "city": self.city,
+            "listing_id": int(listing_id),
+            "title": title,
+            "price": listing_price,
+            **specs,
+            **ratings,
+            **amenities,
+            "url": url,
+            "date_pulled": datetime.today().strftime('%Y-%m-%d')
+        }
 
     def _close_translation_notification(self) -> None:
         pass
