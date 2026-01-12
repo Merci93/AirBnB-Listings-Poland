@@ -61,7 +61,7 @@ def read_file() -> List[str]:
     dag_id="airbnb_read_cities",
     description="Read city list from CSV for data scraping",
     default_args=DEFAULT_ARGS,
-    schedule_interval=None,
+    schedule=None,
     start_date=datetime(2026, 1, 10),
     catchup=False,
     tags=["airbnb", "etl"],
