@@ -1,7 +1,7 @@
 @ECHO OFF
 
 REM Check if image already exists
-SET IMAGE_NAME=apache/airflow:slim-latest
+SET IMAGE_NAME=airbnb-airflow:latest
 
 REM Get image ID if it exists
 FOR /F "tokens=*" %%i IN ('docker images -q %IMAGE_NAME%') DO SET IMAGE_EXISTS=%%i
