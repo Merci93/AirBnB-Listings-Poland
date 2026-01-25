@@ -6,10 +6,14 @@ x-airflow-common:
   image: airbnb-airflow:latest
   environment:
     &airflow-common-env
-    AIRFLOW_EXECUTOR: ${AIRFLOW_EXECUTOR}
-    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres/${POSTGRES_DB}
+    AIRFLOW__API_AUTH__JWT_SECRET: ${AIRFLOW__API_AUTH__JWT_SECRET}
+    AIRFLOW__CORE__EXECUTOR: ${AIRFLOW_EXECUTOR}
+    AIRFLOW__CORE__AUTH_MANAGER: ${AIRFLOW__CORE__AUTH_MANAGER}
+    AIRFLOW__CORE__EXECUTION_API_SERVER_URL: 'http://airflow-apiserver:8080/execution/'
     AIRFLOW__CORE__LOAD_EXAMPLES: "false"
-    AIRFLOW__API__AUTH_BACKENDS: ${AIRFLOW_API_AUTH_BACKENDS}
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres/${POSTGRES_DB}
+    AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: "true"
   volumes:
     - ${AIRFLOW_DATA}:/opt/airflow/data
     - ${AIRFLOW_DAGS}:/opt/airflow/dags
@@ -18,73 +22,11 @@ x-airflow-common:
   user: "${AIRFLOW_UID:-50000}:0"
   networks:
     - app-network
+  depends_on:
+    postgres:
+      condition: service_healthy
 
 services:
-  airflow-init:
-    <<: *airflow-common
-    container_name: airflow-init
-    command: ["bash", "-c", "airflow db migrate"]
-    environment:
-      <<: *airflow-common-env
-      _AIRFLOW_DB_MIGRATE: "true"
-      _AIRFLOW_WWW_USER_CREATE: "true"
-      _AIRFLOW_WWW_USER_USERNAME: ${AIRFLOW_USER_USERNAME}
-      _AIRFLOW_WWW_USER_PASSWORD: ${AIRFLOW_USER_PASSWORD}
-      _AIRFLOW_WWW_USER_EMAIL: ${AIRFLOW_USER_EMAIL}
-      _AIRFLOW_WWW_USER_ROLE: ${AIRFLOW_USER_ROLE}
-    depends_on:
-      postgres:
-        condition: service_healthy
-    networks:
-      - app-network
-
-  airflow-webserver:
-    <<: *airflow-common
-    container_name: airflow-webserver
-    command: api-server
-    environment:
-      <<: *airflow-common-env 
-    ports:
-      - ${AIRFLOW_WEB_SERVER_PORT}:8080
-    healthcheck:
-      test: ["CMD", "curl", "--fail", "http://localhost:8080/api/v2/version"]
-      interval: 1800s
-      timeout: 10s
-      retries: 5
-      start_period: 30s
-    restart: always
-    networks:
-      - app-network
-    depends_on:
-      airflow-init:
-        condition: service_completed_successfully
-
-  airflow-scheduler:
-    <<: *airflow-common
-    container_name: airflow-scheduler
-    command: scheduler
-    environment:
-      <<: *airflow-common-env
-    healthcheck:
-      test: ["CMD", "curl", "--fail", "http://localhost:8974/health"]
-      interval: 1800s
-      timeout: 10s
-      retries: 5
-      start_period: 30s
-    restart: always
-    networks:
-      - app-network
-    depends_on:
-      airflow-init:
-        condition: service_completed_successfully
-  
-  airflow-dag-reserialize:
-    <<: *airflow-common
-    command: ["airflow", "dags", "reserialize"]
-    depends_on:
-      airflow-init:
-        condition: service_completed_successfully
-
   postgres:
     image: postgres:${POSTGRES_IMAGE_VERSION}
     container_name: postgres-db
@@ -104,7 +46,88 @@ services:
     restart: always
     networks:
       - app-network
-  
+
+  airflow-init:
+    <<: *airflow-common
+    container_name: airflow-init
+    command: ["bash", "-c", "airflow db migrate"]
+    environment:
+      <<: *airflow-common-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  airflow-apiserver:
+    <<: *airflow-common
+    container_name: airflow-apiserver
+    command: api-server
+    ports:
+      - ${AIRFLOW_WEB_SERVER_PORT}:8080
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/api/v2/version"]
+      interval: 1800s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: always
+    networks:
+      - app-network
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+
+  airflow-scheduler:
+    <<: *airflow-common
+    container_name: airflow-scheduler
+    command: scheduler
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8974/health"]
+      interval: 1800s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: always
+    networks:
+      - app-network
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+      airflow-apiserver:
+        condition: service_healthy
+
+  airflow-dag-processor:
+    <<: *airflow-common
+    container_name: airflow-dag-processor
+    command: dag-processor
+    healthcheck:
+      test: ["CMD-SHELL", 'airflow jobs check --job-type DagProcessorJob --hostname "$${HOSTNAME}"']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: always
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+      airflow-apiserver:
+        condition: service_healthy
+
+  airflow-triggerer:
+    <<: *airflow-common
+    command: triggerer
+    healthcheck:
+      test: ["CMD-SHELL", 'airflow jobs check --job-type TriggererJob --hostname "$${HOSTNAME}"']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: always
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+
   mongo:
     image: mongo:${MONGODB_IMAGE_VERSION}
     container_name: ${MONGODB_CONTAINER_NAME}
@@ -116,7 +139,7 @@ services:
     restart: always
     networks:
       - app-network
-  
+
   mongo-express:
     image: mongo-express:${MONGO_EXPRESS_IMAGE_VERSION}
     container_name: ${MONGO_EXPRESS_CONTAINER_NAME}
