@@ -19,6 +19,7 @@ x-airflow-common:
     - ${AIRFLOW_DAGS}:/opt/airflow/dags
     - ${AIRFLOW_LOGS}:/opt/airflow/logs
     - ${AIRFLOW_PLUGINS}:/opt/airflow/plugins
+    - ${AIRFLOW_USERS}:/opt/airflow/users
   user: "${AIRFLOW_UID:-50000}:0"
   networks:
     - app-network
@@ -128,35 +129,35 @@ services:
       airflow-init:
         condition: service_completed_successfully
 
-  mongo:
-    image: mongo:${MONGODB_IMAGE_VERSION}
-    container_name: ${MONGODB_CONTAINER_NAME}
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_EXPRESS_ADMINUSERNAME}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_EXPRESS_ADMINPASSWORD}
-    ports:
-      - "${MONGODB_PORT}:27017"
-    restart: always
-    networks:
-      - app-network
+  # mongo:
+  #   image: mongo:${MONGODB_IMAGE_VERSION}
+  #   container_name: ${MONGODB_CONTAINER_NAME}
+  #   environment:
+  #     MONGO_INITDB_ROOT_USERNAME: ${MONGO_EXPRESS_ADMINUSERNAME}
+  #     MONGO_INITDB_ROOT_PASSWORD: ${MONGO_EXPRESS_ADMINPASSWORD}
+  #   ports:
+  #     - "${MONGODB_PORT}:27017"
+  #   restart: always
+  #   networks:
+  #     - app-network
 
-  mongo-express:
-    image: mongo-express:${MONGO_EXPRESS_IMAGE_VERSION}
-    container_name: ${MONGO_EXPRESS_CONTAINER_NAME}
-    environment:
-      ME_CONFIG_MONGODB_URL: mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@${MONGO_EXPRESS_SERVER}:27017/
-      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_EXPRESS_ADMINUSERNAME}
-      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_EXPRESS_ADMINPASSWORD}
-      ME_CONFIG_BASICAUTH_USERNAME: ${MONGO_EXPRESS_BASIC_AUTH_USERNAME}
-      ME_CONFIG_BASICAUTH_PASSWORD: ${MONGO_EXPRESS_BASIC_AUTH_PASSWORD}
-      ME_CONFIG_MONGODB_SERVER: ${MONGO_EXPRESS_SERVER}
-    ports:
-      - "${MONGO_EXPRESS_HOST_BIND_IP}:${MONGO_EXPRESS_PORT}:8081"
-    restart: always
-    networks:
-      - app-network
-    depends_on:
-      - mongo
+  # mongo-express:
+  #   image: mongo-express:${MONGO_EXPRESS_IMAGE_VERSION}
+  #   container_name: ${MONGO_EXPRESS_CONTAINER_NAME}
+  #   environment:
+  #     ME_CONFIG_MONGODB_URL: mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@${MONGO_EXPRESS_SERVER}:27017/
+  #     ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_EXPRESS_ADMINUSERNAME}
+  #     ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_EXPRESS_ADMINPASSWORD}
+  #     ME_CONFIG_BASICAUTH_USERNAME: ${MONGO_EXPRESS_BASIC_AUTH_USERNAME}
+  #     ME_CONFIG_BASICAUTH_PASSWORD: ${MONGO_EXPRESS_BASIC_AUTH_PASSWORD}
+  #     ME_CONFIG_MONGODB_SERVER: ${MONGO_EXPRESS_SERVER}
+  #   ports:
+  #     - "${MONGO_EXPRESS_HOST_BIND_IP}:${MONGO_EXPRESS_PORT}:8081"
+  #   restart: always
+  #   networks:
+  #     - app-network
+  #   depends_on:
+  #     - mongo
 
 volumes:
   pg-data:
