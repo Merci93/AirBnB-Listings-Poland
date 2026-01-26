@@ -3,7 +3,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 
-from dags.log_handler import logger
+from dags.utils.log_handler import logger
 
 
 def init_driver(debug: bool = False) -> webdriver.Chrome:
