@@ -142,8 +142,6 @@ services:
       --email ${AIRFLOW_ADMIN_EMAIL}
       --password ${AIRFLOW_ADMIN_PASSWORD}
       "
-    environment:
-      <<: *airflow-common-env
     depends_on:
       airflow-apiserver:
         condition: service_healthy
