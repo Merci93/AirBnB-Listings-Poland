@@ -21,7 +21,3 @@ IF NOT DEFINED IMAGE_EXISTS (
 REM Run docker compose
 docker-compose up -d
 ECHO Docker containers are up and running.
-
-REM Create default Airflow user
-ECHO Creating default Airflow user...
-docker exec -it airflow-apiserver bash /opt/airflow/users/create_default_user.sh
