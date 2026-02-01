@@ -19,7 +19,6 @@ x-airflow-common:
     - ${AIRFLOW_DAGS}:/opt/airflow/dags
     - ${AIRFLOW_LOGS}:/opt/airflow/logs
     - ${AIRFLOW_PLUGINS}:/opt/airflow/plugins
-    - ${AIRFLOW_USERS}:/opt/airflow/users
   user: "${AIRFLOW_UID:-50000}:0"
   networks:
     - app-network
