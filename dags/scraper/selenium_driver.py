@@ -1,13 +1,11 @@
 """Selenium web driver module"""
 import os
 
-from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
 from utils.log_handler import logger
 
-load_dotenv()
 
 SELENIUM_HOST = os.getenv("SELENIUM_CHROME_CONTAINER_NAME")
 SELENIUM_PORT = os.getenv("SELENIUM_CHROME_PORT")
