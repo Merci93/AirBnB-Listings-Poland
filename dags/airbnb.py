@@ -2,16 +2,16 @@
 
 import os
 from datetime import datetime, timedelta
-from typing import List
+from typing import Dict, List
 
 import pandas as pd
 from airflow.sdk import dag, task
 from airflow.sdk import Variable
 
 
-# from dags.log_handler import logger
-# from scraper.get_listing_urls import ExtractListingURL
-# from scraper.transform_data import ExtractListingData
+# from utils.log_handler import logger
+from scraper.get_listing_urls import ExtractListingURL
+# from dags.scraper.transform_data import ExtractListingData
 
 
 url = "https://www.airbnb.com/"
@@ -57,6 +57,18 @@ def read_file() -> List[str]:
     return city_list
 
 
+@task
+def extract_listing_urls_per_city(url: str, cities: List[str]) -> Dict[str, List[str]]:
+    """
+    Extract listing URL for each listing per city.
+
+    :param url: Base webpage URL.
+    :param cities: List of cities to extract listings for.
+    :return: Dict mapping city name -> list of listing URLs.
+    """
+    return ExtractListingURL(base_url=url, cities=cities).extract_url()
+
+
 @dag(
     dag_id="airbnb_read_cities",
     description="Read city list from CSV for data scraping",
@@ -67,10 +79,11 @@ def read_file() -> List[str]:
     tags=["airbnb", "etl"],
 )
 def airbnb_read_cities_dag():
-    return read_file()
+    cities = read_file()
+    listing_urls = extract_listing_urls_per_city(url=url, cities=cities)
 
 
-citties = airbnb_read_cities_dag()
+airbnb_read_cities_dag()
 
 
 # @task
