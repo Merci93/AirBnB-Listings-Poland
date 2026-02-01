@@ -34,7 +34,7 @@ def read_file() -> List[str]:
 
     file_path = Variable.get(
         "csv_file_path",
-        default_var="/opt/airflow/data/cities.csv"
+        default="/opt/airflow/data/cities.csv"
     )
 
     if not os.path.exists(file_path):
