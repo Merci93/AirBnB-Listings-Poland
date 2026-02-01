@@ -6,6 +6,7 @@ pandas
 psycopg2-binary
 psycopg2
 pydantic-settings==2.3.4
+python-dotenv==1.2.1
 PyYaml==6.0.1
 selenium==4.22.0
 tqdm==4.66.4
