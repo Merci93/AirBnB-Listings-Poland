@@ -1,9 +1,16 @@
 """Selenium web driver module"""
+import os
+
+from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
-from config.config import settings
 from utils.log_handler import logger
+
+load_dotenv()
+
+SELENIUM_HOST = os.getenv("SELENIUM_CHROME_CONTAINER_NAME")
+SELENIUM_PORT = os.getenv("SELENIUM_CHROME_PORT")
 
 
 def init_driver(debug: bool = False) -> webdriver.Remote:
@@ -40,7 +47,7 @@ def init_driver(debug: bool = False) -> webdriver.Remote:
     )
 
     driver = webdriver.Remote(
-        command_executor=f'http://{settings.selenium_host}:{settings.selenium_port}/wd/hub',
+        command_executor=f'http://{SELENIUM_HOST}:{SELENIUM_PORT}/wd/hub',
         options=chrome_options
     )
 
