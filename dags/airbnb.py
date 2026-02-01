@@ -9,7 +9,7 @@ from airflow.sdk import dag, task
 from airflow.sdk import Variable
 
 
-# from utils.log_handler import logger
+from utils.log_handler import logger
 from scraper.get_listing_urls import ExtractListingURL
 # from dags.scraper.transform_data import ExtractListingData
 
@@ -30,7 +30,7 @@ def read_file() -> List[str]:
 
     :return: List of city names.
     """
-    # logger.info("Reading city file")
+    logger.info("Reading city file ...")
 
     file_path = Variable.get(
         "csv_file_path",
@@ -53,7 +53,7 @@ def read_file() -> List[str]:
         .tolist()
     )
 
-    # logger.info("Loaded %d cities", len(city_list))
+    logger.info("Loaded %d cities", len(city_list))
     return city_list
 
 
