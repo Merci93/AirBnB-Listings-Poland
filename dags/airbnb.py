@@ -6,7 +6,7 @@ from typing import List
 
 import pandas as pd
 from airflow.sdk import dag, task
-from airflow.models import Variable
+from airflow.sdk import Variable
 
 
 # from dags.log_handler import logger
