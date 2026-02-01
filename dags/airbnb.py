@@ -6,7 +6,7 @@ from typing import List
 
 import pandas as pd
 from airflow.sdk import dag, task
-from airflow.models import Variable
+from airflow.sdk import Variable
 
 
 # from dags.log_handler import logger
@@ -34,7 +34,7 @@ def read_file() -> List[str]:
 
     file_path = Variable.get(
         "csv_file_path",
-        default_var="/opt/airflow/data/cities.csv"
+        default="/opt/airflow/data/cities.csv"
     )
 
     if not os.path.exists(file_path):
