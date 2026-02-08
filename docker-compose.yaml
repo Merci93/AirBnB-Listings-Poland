@@ -145,6 +145,16 @@ services:
       airflow-apiserver:
         condition: service_healthy
     restart: "no"
+  
+  selenium-chrome:
+    image: selenium/standalone-chrome:${SELENIUM_CHROME_IMAGE_VERSION}
+    container_name: selenium-chrome
+    ports:
+      - "${SELENIUM_CHROME_PORT}:4444"
+    shm_size: 2g
+    restart: always
+    networks:
+      - app-network
 
   mongo:
     image: mongo:${MONGODB_IMAGE_VERSION}

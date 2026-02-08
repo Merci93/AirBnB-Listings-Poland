@@ -1,12 +1,17 @@
 """Selenium web driver module"""
+import os
+
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
 
-from dags.utils.log_handler import logger
+from utils.log_handler import logger
 
 
-def init_driver(debug: bool = False) -> webdriver.Chrome:
+SELENIUM_HOST = os.getenv("SELENIUM_CHROME_CONTAINER_NAME")
+SELENIUM_PORT = os.getenv("SELENIUM_CHROME_PORT")
+
+
+def init_driver(debug: bool = False) -> webdriver.Remote:
     """
     Initialize a safe headless Chrome WebDriver
     """
@@ -23,7 +28,6 @@ def init_driver(debug: bool = False) -> webdriver.Chrome:
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--disable-extensions")
-    chrome_options.add_argument("--remote-debugging-port=9222")
 
     # Interface noise reduction
     chrome_options.add_argument("--disable-infobars")
@@ -40,15 +44,12 @@ def init_driver(debug: bool = False) -> webdriver.Chrome:
         },
     )
 
-    # # Explicit binary paths (critical in Docker)
-    chrome_options.binary_location = "/usr/local/bin/google-chrome"
-
-    service = Service("/usr/local/bin/chromedriver")
-
-    driver = webdriver.Chrome(
-        service=service,
-        options=chrome_options,
+    driver = webdriver.Remote(
+        command_executor=f'http://{SELENIUM_HOST}:{SELENIUM_PORT}/wd/hub',
+        options=chrome_options
     )
+
+    driver.set_page_load_timeout(30)
 
     logger.info("Chrome driver initialized successfully.")
 

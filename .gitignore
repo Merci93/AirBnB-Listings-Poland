@@ -20,3 +20,6 @@ plugins
 
 # Python Version
 .python-version
+
+# pynb files
+*.ipynb
